@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Agendar Nueva Cita 🐶</h1>
+
+    <form method="POST">
+        <label for="nombre_mascota">Nombre de la mascota:</label><br>
+        <div class="sugerencias-wrapper">
+        <input type="text" id="nombre_mascota" name="nombre_mascota" autocomplete="off">
+        <div id="sugerencias" style="display: none;"></div>
+       </div>
+        <br><br>
+
+        <label for="telefono">Teléfono:</label><br>
+        <input type="text" id="telefono" name="telefono"><br><br>
+
+        <label for="raza">Raza:</label><br>
+        <input type="text" id="raza" name="raza"><br><br>
+
+        <label for="tamano">Tamaño:</label><br>
+        <select name="tamano" id="tamano">
+            <option value="">Seleccionar...</option>
+            <option value="pequeno">Pequeño</option>
+            <option value="mediano">Mediano</option>
+            <option value="grande">Grande</option>
+        </select><br><br>
+
+        <label for="fecha">Fecha:</label><br>
+        <input type="date" id="fecha" name="fecha" value="{{ fecha }}" required><br><br>
+
+        <label for="hora">Hora:</label><br>
+        <input type="time" id="hora" name="hora" value="{{ hora }}" required><br><br>
+
+        <!-- Registro sugerido si no existe -->
+        <div id="registro_no_encontrado" style="display: none;">
+            <p>🐶 No se encontró la mascota. ¿Deseas registrarla?</p>
+            <a id="enlace_registro" href="/registrar?nombre=">
+                <button type="button">Registrar nueva mascota</button>
+            </a>
+        </div>
+
+        <label>Notas:</label><br>
+        <textarea name="notas"></textarea><br><br>
+
+        <label>Precio (€):</label><br>
+        <input type="number" name="precio" step="0.01" value="{{ precio or '' }}"><br><br>
+
+        <label>Método de pago:</label><br>
+        <select name="metodo_pago">
+            <option value="">Sin registrar</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+        </select><br><br>
+
+        <button type="submit">Guardar Cita</button>
+    </form>
+
+    <br>
+    <a href="/">Volver al inicio</a>
+    <br><br>
+    <br><br>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("nombre_mascota");
+            const sugerencias = document.getElementById("sugerencias");
+
+            input.addEventListener("input", () => {
+                const nombre = input.value.trim();
+                if (nombre.length < 1) {
+                    sugerencias.style.display = "none";
+                    return;
+                }
+
+                fetch(`/api/mascotas_sugerencia?nombre=${encodeURIComponent(nombre)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        sugerencias.innerHTML = "";
+                        data.forEach(mascota => {
+                            const item = document.createElement("div");
+                            item.textContent = `${mascota.nombre} (${mascota.raza}, ${mascota.telefono})`;
+                            item.style.cursor = "pointer";
+                            item.style.padding = "5px";
+                            item.addEventListener("click", () => {
+                                input.value = mascota.nombre;
+                                document.getElementById("telefono").value = mascota.telefono;
+                                document.getElementById("raza").value = mascota.raza;
+                                document.getElementById("tamano").value = mascota.tamano;
+                                sugerencias.style.display = "none";
+                            });
+                            sugerencias.appendChild(item);
+                        });
+                        sugerencias.style.display = data.length ? "block" : "none";
+                    });
+            });
+
+            document.addEventListener("click", (e) => {
+                if (!sugerencias.contains(e.target) && e.target !== input) {
+                    sugerencias.style.display = "none";
+                }
+            });
+        });
+
+        // Evita que la rueda del ratón cambie el valor del input de precio
+        const precioInput = document.querySelector('input[name="precio"]');
+        if (precioInput) {
+            precioInput.addEventListener('wheel', function (e) {
+                e.preventDefault();
+            });
+        }
+    </script>
+{% endblock %}

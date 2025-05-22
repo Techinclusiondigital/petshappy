@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>💰 Arqueo de Caja ({{ hoy.strftime('%d/%m/%Y') }})</h1>
+    <form method="GET" action="/arqueo/pdf">
+        <button type="submit">📄 Descargar Arqueo en PDF</button>
+    </form>
+    <br><br>
+    <br><br>
+    <ul>
+        <li><strong>Total en efectivo:</strong> {{ total_efectivo }} €</li>
+        <li><strong>Total en tarjeta:</strong> {{ total_tarjeta }} €</li>
+        <li><strong>Total recaudado:</strong> {{ total }} €</li>
+    </ul>
+    <a href="/agenda">← Volver a la agenda</a>
+    <br><br>
+    <br><br>
+    {% endblock %}
+

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>📅 Agenda de Citas</h1>
+<style>
+/* Ocultar flechas en Chrome, Safari y Edge */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Ocultar flechas en Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Evitar que la rueda del ratón cambie el valor */
+input[type=number]:focus {
+    outline: none;
+}
+
+
+
+
+</style>
+<div class="agenda-container">
+    <a href="/cita" class="boton">➕ Agendar nueva cita</a>
+
+    {% for fecha, nombre_dia, bloques in agenda %}
+        <h2>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h2>
+        <ul>
+            {% for bloque in bloques %}
+            <li>
+                {% if bloque.enlace %}
+                    <a href="{{ bloque.enlace }}">{{ bloque.texto }}</a>
+                {% else %}
+                    <strong class="ocupado">{{ bloque.texto }}</strong>
+
+                    {% if bloque.cita_id %}
+                        {% if bloque.metodo_pago %}
+                            {% if bloque.metodo_pago == 'efectivo' %} 💵
+                            {% elif bloque.metodo_pago == 'tarjeta' %} 💳
+                            {% endif %}
+                        {% else %}
+                        <form method="POST" action="/actualizar_pago/{{ bloque.cita_id }}" class="inline">
+                            <!-- Método de pago -->
+                            <select name="metodo_pago">
+                                <option value="">❓</option>
+                                <option value="efectivo">💵</option>
+                                <option value="tarjeta">💳</option>
+                            </select>
+                        
+                            <!-- Precio -->
+                            <input type="number" name="precio" placeholder="€" step="0.01" style="width: 70px;" required>
+                        
+                            <!-- Botón guardar -->
+                            <button type="submit">💾</button>
+                        </form>
+                        
+                                
+                        {% endif %}
+
+                        <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="inline">
+                            <button type="submit">❌ Anular</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+
+    <hr>
+    <h2>📋 Arqueo del día</h2>
+    <form method="GET" action="/arqueo">
+        <button type="submit">💰 Ver arqueo de caja</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll("input[type='number']").forEach(input => {
+            input.addEventListener("wheel", function (e) {
+                e.preventDefault();
+            });
+        });
+    });
+    </script>
+    
+{% endblock %}
+

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>Registrar Nueva Mascota 🐾</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label for="nombre">Nombre:</label><br>
+        <input type="text" name="nombre" id="nombre" value="{{ nombre }}"><br><br>
+
+        <label for="telefono">Teléfono:</label><br>
+        <input type="text" name="telefono" id="telefono" value="{{ telefono }}"><br><br>
+
+        <label for="duenio">Nombre del dueño:</label><br>
+<input type="text" id="duenio" name="duenio" required><br><br>
+
+
+        <label for="raza">Raza:</label><br>
+        <input type="text" name="raza" id="raza" value="{{ raza }}"><br><br>
+
+        <label for="tamano">Tamaño:</label><br>
+        <select name="tamano" id="tamano" required>
+            <option value="">Seleccionar</option>
+            <option value="pequeno" {% if tamano == "pequeno" %}selected{% endif %}>Pequeño</option>
+            <option value="mediano" {% if tamano == "mediano" %}selected{% endif %}>Mediano</option>
+            <option value="grande" {% if tamano == "grande" %}selected{% endif %}>Grande</option>
+        </select><br><br>
+
+        <label for="edad">Fecha de nacimiento (opcional):</label><br>
+        <input type="date" name="edad"><br><br>
+
+        <label for="caracter">Carácter:</label><br>
+        <textarea name="caracter"></textarea><br><br>
+
+        <label for="tipo_corte">Tipo de corte:</label><br>
+        <input type="text" name="tipo_corte"><br><br>
+
+        <label for="precio">Precio (€):</label><br>
+        <input type="number" name="precio" step="0.01"><br><br>
+
+        <label for="foto_antes">Foto antes:</label><br>
+        <input type="file" name="foto_antes"><br><br>
+
+        <label for="foto_despues">Foto después:</label><br>
+        <input type="file" name="foto_despues"><br><br>
+
+        <button type="submit">Registrar Mascota</button>
+    </form>
+
+    <br>
+    <a href="/">Volver al inicio</a>
+    <br><br>
+    <br><br>
+    <script>
+        const precioInput = document.querySelector('input[name="precio"]');
+        if (precioInput) {
+            precioInput.addEventListener('wheel', function (e) {
+                e.preventDefault();
+            });
+        }
+    </script>
+    {% endblock %}

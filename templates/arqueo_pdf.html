@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Arqueo de Caja</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #aaa; padding: 6px; }
+    </style>
+</head>
+<body>
+    <h1>📋 Arqueo de Caja - {{ hoy.strftime('%d/%m/%Y') }}</h1>
+
+    <table>
+        <tr>
+            <th>Hora</th>
+            <th>Mascota</th>
+            <th>Precio</th>
+            <th>Pago</th>
+        </tr>
+        {% for cita in citas %}
+        <tr>
+            <td>{{ cita.hora.strftime('%H:%M') }}</td>
+            <td>{{ cita.mascota.nombre }}</td>
+            <td>{{ "%.2f"|format(cita.precio or 0) }} €</td>
+            <td>{{ cita.metodo_pago or "No registrado" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Total efectivo: 💵 {{ "%.2f"|format(total_efectivo) }} €</h3>
+    <h3>Total tarjeta: 💳 {{ "%.2f"|format(total_tarjeta) }} €</h3>
+    <h2>Total general: {{ "%.2f"|format(total) }} €</h2>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Ficha de {{ mascota.nombre }} 🐶</h1>
+    <a href="/ficha_pdf/{{ mascota.id }}" target="_blank">📄 Exportar historial en PDF</a><br><br>
+    <a href="/editar/{{ mascota.id }}">✏️ Editar ficha</a>
+
+    <ul>
+        <li><strong>Raza:</strong> {{ mascota.raza }}</li>
+        <li><strong>Fecha de nacimiento:</strong>
+            {% if mascota.edad %}
+                {{ mascota.edad.strftime('%d/%m/%Y') }}
+            {% else %}
+                No especificada
+            {% endif %}
+        </li>
+        
+        <li><strong>Dueño:</strong> {{ mascota.duenio }}</li>
+        <li><strong>Teléfono:</strong> {{ mascota.telefono }}</li>
+        <li><strong>Carácter:</strong> {{ mascota.caracter }}</li>
+        <li><strong>Tipo de corte:</strong> {{ mascota.tipo_corte }}</li>
+    </ul>
+    <h2>📋 Historial de Citas</h2>
+    {% if mascota.citas %}
+    <table class="tabla-centrada">
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Notas</th>
+                <th>Precio (€)</th>
+                <th>Editar</th>
+            </tr>
+            {% for cita in mascota.citas %}
+            <tr>
+                <td>{{ cita.fecha }}</td>
+                <td>{{ cita.hora.strftime('%H:%M') }}</td>
+                <td>{{ cita.notas or '' }}</td>
+                <td>{{ "%.2f"|format(cita.precio or 0) }}</td>
+                <td><a href="/editar_cita/{{ cita.id }}">✏️ Editar</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No hay citas registradas aún.</p>
+    {% endif %}
+    <h2>Fotos</h2>
+    {% if mascota.foto_antes %}
+        <p><strong>Antes:</strong><br>
+        <img src="{{ url_for('static', filename='fotos/' ~ mascota.foto_antes) }}" width="300"></p>
+    {% endif %}
+    
+    {% if mascota.foto_despues %}
+        <p><strong>Después:</strong><br>
+        <img src="{{ url_for('static', filename='fotos/' ~ mascota.foto_despues) }}" width="300"></p>
+    {% endif %}
+    
+    <br><a href="/">Volver al inicio</a>
+    <br><br>
+    {% endblock %}

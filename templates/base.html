@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Petshappy{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+
+
+        nav {
+            background-color: #00cc7a;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin: 10px 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: #009966;
+        }
+
+        .nav-links a:hover {
+            background-color: #007a4d;
+        }
+
+        .menu-toggle {
+            display: none;
+            background-color: #009966;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                background-color: #00cc7a;
+                width: 100%;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: inline-block;
+            }
+        }
+
+        .agenda-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+        }
+
+        .boton {
+            background-color: #00b36b;
+            color: white;
+            padding: 10px 20px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .boton:hover {
+            background-color: #007a4d;
+        }
+
+        .ocupado {
+            color: red;
+            font-weight: bold;
+        }
+
+        form.inline {
+            display: inline;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="bienvenido">🐾 Bienvenid@, {{ current_user.nombre_usuario }}</h1>
+    </header>
+
+    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
+
+    <nav>
+        <ul class="nav-links" id="navMenu">
+            <li><a href="/registrar">Registrar mascota</a></li>
+            <li><a href="/mascotas">Ver mascotas</a></li>
+            <li><a href="/buscar-mascota">Buscar mascota</a></li>
+            <li><a href="/cita">Registrar cita</a></li>
+            <li><a href="/agenda">Agenda</a></li>
+            <li><a href="/arqueo">Arqueo</a></li>
+            <li><a href="/logout">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        {% block content %}
+        <!-- Aquí se insertará el contenido de cada plantilla hija -->
+        {% endblock %}
+    </main>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById("navMenu");
+            menu.classList.toggle("show");
+        }
+    </script>
+
+</body>
+</html>

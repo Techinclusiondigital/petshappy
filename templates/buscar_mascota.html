@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Buscar Mascota 🐾</h1>
+    <form method="POST">
+        <label>Nombre de la mascota:</label><br>
+        <input type="text" name="nombre" required>
+        <button type="submit">Buscar</button>
+    </form>
+    <br>
+    <a href="/">Volver al inicio</a>
+    <br><br>
+    <br><br>
+    {% endblock %}
+

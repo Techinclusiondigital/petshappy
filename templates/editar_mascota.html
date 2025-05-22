@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Editar Mascota: {{ mascota.nombre }}</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label>Nombre:</label><br>
+        <input type="text" name="nombre" value="{{ mascota.nombre }}"><br><br>
+
+        <label for="tamano">Tamaño del perro:</label>
+        <select name="tamano" id="tamano" required>
+            <option value="">Seleccionar...</option>
+            <option value="pequeno" {% if mascota.tamano == 'pequeno' %}selected{% endif %}>Pequeño</option>
+            <option value="mediano" {% if mascota.tamano == 'mediano' %}selected{% endif %}>Mediano</option>
+            <option value="grande" {% if mascota.tamano == 'grande' %}selected{% endif %}>Grande</option>
+        </select>
+        <br><br>
+
+        <label>Raza:</label><br>
+        <input type="text" name="raza" value="{{ mascota.raza }}"><br><br>
+
+        <label>Fecha de nacimiento:</label><br>
+        <input type="date" name="edad" value="{{ mascota.edad|default('', true) }}"><br><br>
+
+        <label>Dueño:</label><br>
+        <input type="text" name="duenio" value="{{ mascota.duenio }}"><br><br>
+
+        <label>Teléfono:</label><br>
+        <input type="text" name="telefono" value="{{ mascota.telefono }}"><br><br>
+
+        <label>Carácter:</label><br>
+        <textarea name="caracter">{{ mascota.caracter }}</textarea><br><br>
+
+        <label>Detalles del corte:</label><br>
+        <input type="text" name="tipo_corte" value="{{ mascota.tipo_corte }}"><br><br>
+
+        <label>Precio habitual (€):</label><br>
+        <input type="number" name="precio" value="{{ mascota.precio }}"><br><br>
+
+        <label>Foto antes:</label><br>
+        {% if mascota.foto_antes %}
+            <img src="{{ url_for('static', filename='fotos/' ~ mascota.foto_antes) }}" width="200"><br>
+        {% endif %}
+        <input type="file" name="foto_antes"><br><br>
+
+        <label>Foto después:</label><br>
+        {% if mascota.foto_despues %}
+            <img src="{{ url_for('static', filename='fotos/' ~ mascota.foto_despues) }}" width="200"><br>
+        {% endif %}
+        <input type="file" name="foto_despues"><br><br>
+
+        <button type="submit">Guardar cambios</button>
+    </form>
+
+    <br>
+    <a href="/ficha/{{ mascota.id }}">Cancelar</a>
+    {% endblock %}

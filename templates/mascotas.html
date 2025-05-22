@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Listado de Mascotas Registradas 🐶</h1>
+<a href="/">Volver al inicio</a> | 
+<a href="/registrar">Registrar nueva mascota</a>
+<br><br>
+
+<form method="GET" action="/mascotas">
+    <input type="text" name="q" placeholder="Buscar por nombre o teléfono">
+    <button type="submit">Buscar</button>
+</form>
+<br>
+
+<div style="overflow-x: auto; display: flex; justify-content: center;">
+    {% if mascotas %}
+    <table border="1" cellpadding="8" style="border-collapse: collapse; min-width: 900px; background-color: white;">
+        <tr style="background-color: #00cc7a; color: white;">
+            <th>Nombre</th>
+            <th>Raza</th>
+            <th>Fecha de nacimiento</th>
+            <th>Dueño</th>
+            <th>Teléfono</th>
+            <th>Carácter</th>
+            <th>Tipo de Corte</th>
+        </tr>
+        {% for mascota in mascotas %}
+        <tr>
+            <td><a href="/ficha/{{ mascota.id }}">{{ mascota.nombre }}</a></td>
+            <td>{{ mascota.raza }}</td>
+            <td>{{ mascota.edad }}</td>
+            <td>{{ mascota.duenio }}</td>
+            <td>{{ mascota.telefono }}</td>
+            <td>{{ mascota.caracter }}</td>
+            <td>{{ mascota.tipo_corte }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No hay mascotas registradas.</p>
+    {% endif %}
+</div>
+{% endblock %}
