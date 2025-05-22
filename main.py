@@ -29,9 +29,8 @@ def archivo_permitido(filename):
 
 
 # Ruta absoluta al ejecutable wkhtmltopdf
-PDFKIT_CONFIG = pdfkit.configuration(
-    wkhtmltopdf=r'C:\PROGRA~1\wkhtmltopdf\bin\wkhtmltopdf.exe'
-)
+PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=os.environ.get("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf"))
+
 
 db = SQLAlchemy(app)
 
