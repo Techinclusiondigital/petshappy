@@ -88,15 +88,15 @@ body {
 /* Estilos móviles */
 @media (max-width: 600px) {
     .contenido h1 {
-        font-size: 24px;
+        font-size: 28px;
     }
 
     .contenido p {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .boton {
         padding: 10px 20px;
-        font-size: 16px;
+        font-size: 18px;
     }
 }
