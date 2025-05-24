@@ -18,7 +18,7 @@ from flask_login import current_user
 from functools import wraps
 from flask import redirect, flash
 from flask import Flask, render_template, request, redirect, flash
-
+from datetime import datetime, timedelta
 
 def requiere_suscripcion(f):
     @wraps(f)
@@ -55,6 +55,7 @@ class Usuario(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     fecha_alta = db.Column(db.Date, default=datetime.utcnow)
     fecha_pago = db.Column(db.DateTime, nullable=True)
+    subscripcion_id = db.Column(db.String(100), nullable=True)  # <-- si aún no está
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -64,9 +65,10 @@ class Usuario(db.Model, UserMixin):
 
     
 def en_periodo_prueba(self):
-    if not self.fecha_pago:
-        return datetime.utcnow().date() <= self.fecha_alta + timedelta(days=30)
-    return datetime.utcnow() <= self.fecha_pago + timedelta(days=30)
+        if not self.fecha_alta:
+            return False
+        fin_prueba = self.fecha_alta + timedelta(days=30)
+        return datetime.utcnow().date() <= fin_prueba
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
