@@ -1,169 +1,113 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Panel de Control</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% extends "base.html" %}
 
-</head>
-<body>
+{% block title %}Panel de Control{% endblock %}
 
-<header>
-    <h1 class="bienvenido">🐾 Bienvenid@, {{ current_user.nombre_usuario }}</h1>
-  
-</header>
+{% block content %}
 {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
-<div style="background-color: #ffe5e5; padding: 20px; margin: 20px auto; border: 1px solid red; max-width: 500px; text-align: center;">
-    <h2 style="color: red;">🚫 Tu prueba gratuita ha caducado</h2>
+<div class="alert alert-danger text-center">
+    <h2>🚫 Tu prueba gratuita ha caducado</h2>
     <p>Activa tu suscripción para seguir usando la aplicación</p>
-
-    <!-- Botón de PayPal -->
     <div id="paypal-button-container"></div>
-    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
-    <script>
-        paypal.Buttons({
-            style: {
-                shape: 'rect',
-                color: 'gold',
-                layout: 'vertical',
-                label: 'subscribe'
-            },
-            createSubscription: function(data, actions) {
-                return actions.subscription.create({
-                    plan_id: 'P-0YP52904YG949224RNAY3BJY'
-                });
-            },
-            onApprove: function(data, actions) {
-                alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
-                window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
-            }
-        }).render('#paypal-button-container');
-    </script>
 </div>
 {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
-<div style="background-color: #e0f7fa; padding: 20px; margin: 20px auto; border: 1px solid #00bcd4; max-width: 500px; text-align: center;">
+<div class="alert alert-info text-center">
     <h3>⏳ Tu prueba gratuita finaliza en:</h3>
     <div id="contador" style="font-size: 20px; font-weight: bold;"></div>
 </div>
-<script>
-   const finPrueba = new Date("{{ fecha_fin_prueba }}T00:00:00Z");
- 
+{% endif %}
 
+<nav class="text-center my-3">
+    <a href="/registrar" class="btn btn-outline-primary mx-1">Registrar mascota</a>
+    <a href="/mascotas" class="btn btn-outline-primary mx-1">Ver mascotas</a>
+    <a href="/buscar-mascota" class="btn btn-outline-primary mx-1">Buscar mascota</a>
+    <a href="/cita" class="btn btn-outline-primary mx-1">Registrar cita</a>
+    <a href="/agenda" class="btn btn-outline-primary mx-1">Agenda</a>
+    <a href="/logout" class="btn btn-outline-danger mx-1">Cerrar sesión</a>
+</nav>
+
+<h2 class="text-center">📅 Agenda de Citas</h2>
+
+<div class="agenda-container">
+    <a href="/cita" class="btn btn-success mb-3">➕ Agendar nueva cita</a>
+
+    {% for fecha, nombre_dia, bloques in agenda %}
+        <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
+        <ul class="list-group mb-3">
+            {% for bloque in bloques %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {% if bloque.enlace %}
+                        <a href="{{ bloque.enlace }}">{{ bloque.texto }}</a>
+                    {% else %}
+                        <strong class="text-danger">{{ bloque.texto }}</strong>
+                        {% if bloque.cita_id %}
+                            {% if not bloque.metodo_pago %}
+                                <form method="POST" action="/actualizar_pago/{{ bloque.cita_id }}" class="d-inline">
+                                    <select name="metodo_pago" onchange="this.form.submit()">
+                                        <option value="">❓</option>
+                                        <option value="efectivo">💵</option>
+                                        <option value="tarjeta">💳</option>
+                                    </select>
+                                </form>
+                            {% else %}
+                                {% if bloque.metodo_pago == "efectivo" %} 💵{% elif bloque.metodo_pago == "tarjeta" %} 💳{% endif %}
+                            {% endif %}
+                            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</div>
+
+<h3>📋 Arqueo del día</h3>
+<form method="GET" action="/arqueo">
+    <button type="submit" class="btn btn-warning">💰 Ver arqueo de caja</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+{% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
+<script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
+<script>
+    paypal.Buttons({
+        style: {
+            shape: 'rect',
+            color: 'gold',
+            layout: 'vertical',
+            label: 'subscribe'
+        },
+        createSubscription: function(data, actions) {
+            return actions.subscription.create({
+                plan_id: 'P-0YP52904YG949224RNAY3BJY'
+            });
+        },
+        onApprove: function(data, actions) {
+            alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
+            window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
+        }
+    }).render('#paypal-button-container');
+</script>
+{% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
+<script>
+    const finPrueba = new Date("{{ fecha_fin_prueba }}T00:00:00Z");
     function actualizarContador() {
         const ahora = new Date();
         const tiempoRestante = finPrueba - ahora;
-
         if (tiempoRestante <= 0) {
             document.getElementById("contador").textContent = "🚫 Prueba finalizada";
             return;
         }
-
         const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
         const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
         const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
         const segundos = Math.floor((tiempoRestante / 1000) % 60);
-
         document.getElementById("contador").textContent = `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
     }
-
     setInterval(actualizarContador, 1000);
     actualizarContador();
 </script>
 {% endif %}
-
-<button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
-
-<nav>
-    <ul class="nav-links" id="navMenu">
-        <li><a href="/registrar">Registrar mascota</a></li>
-        <li><a href="/mascotas">Ver mascotas</a></li>
-        <li><a href="/buscar-mascota">Buscar mascota</a></li>
-        <li><a href="/cita">Registrar cita</a></li>
-        <li><a href="/agenda">Agenda</a></li>
-        <li><a href="/logout">Cerrar sesión</a></li>
-    </ul>
-</nav>
-
-<script>
-    function toggleMenu() {
-        const menu = document.getElementById("navMenu");
-        menu.classList.toggle("show");
-    }
-</script>
-<h1>📅 Agenda de Citas</h1>
-
-<div class="agenda-container">
-
-    <a href="/cita" class="boton">➕ Agendar nueva cita</a>
-
-    {% for fecha, nombre_dia, bloques in agenda %}
-        <h2>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h2>
-        <ul>
-            {% for bloque in bloques %}
-            <li>
-                {% if bloque.enlace %}
-                    <a href="{{ bloque.enlace }}">{{ bloque.texto }}</a>
-                {% else %}
-                    <strong class="ocupado">{{ bloque.texto }}</strong>
-
-                    {% if bloque.cita_id %}
-                        {% if bloque.metodo_pago %}
-                            {% if bloque.metodo_pago == 'efectivo' %} 💵
-                            {% elif bloque.metodo_pago == 'tarjeta' %} 💳
-                            {% endif %}
-                        {% else %}
-                            <form method="POST" action="/actualizar_pago/{{ bloque.cita_id }}" class="inline">
-                                <select name="metodo_pago" onchange="this.form.submit()">
-                                    <option value="">❓</option>
-                                    <option value="efectivo">💵</option>
-                                    <option value="tarjeta">💳</option>
-                                </select>
-                            </form>
-                        {% endif %}
-
-                        <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="inline">
-                            <button type="submit">❌ Anular</button>
-                        </form>
-                    {% endif %}
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    {% endfor %}
-
-    <hr>
-    <h2>📋 Arqueo del día</h2>
-    <form method="GET" action="/arqueo">
-        <button type="submit" class="boton">💰 Ver arqueo de caja</button>
-
-    </form>
-
-</div>
-<script>
-    const finPrueba = new Date("{{ fecha_fin_prueba }}T00:00:00Z");
-
-    function actualizarContador() {
-        const ahora = new Date();
-        const tiempoRestante = finPrueba - ahora;
-
-        if (tiempoRestante <= 0) {
-            document.getElementById("contador").textContent = "🚫 Prueba finalizada";
-            return;
-        }
-
-        const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
-        const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
-        const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
-        const segundos = Math.floor((tiempoRestante / 1000) % 60);
-
-        document.getElementById("contador").textContent = `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
-    }
-
-    setInterval(actualizarContador, 1000);
-    actualizarContador();
-</script>
-
-
-</body>
-</html>
+{% endblock %}
