@@ -543,7 +543,7 @@ def login():
 
 @app.route("/pago")
 def pago():
-    return "⛔ Tu prueba gratuita ha finalizado. Contáctanos para activar tu cuenta."
+    return render_template("pago.html")
 
 from flask_login import login_required, current_user
 
@@ -623,6 +623,13 @@ def actualizar_pago(cita_id):
     db.session.commit()
     return redirect("/agenda")
 
+@app.route("/activar")
+@login_required
+def activar():
+    current_user.fecha_alta = datetime.utcnow().date()
+    db.session.commit()
+    flash("✅ Cuenta activada. Gracias por tu pago.")
+    return redirect("/dashboard")
 
 
 
