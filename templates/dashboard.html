@@ -11,7 +11,67 @@
 
 <header>
     <h1 class="bienvenido">🐾 Bienvenid@, {{ current_user.nombre_usuario }}</h1>
+  
 </header>
+{% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
+<div style="background-color: #ffe5e5; padding: 20px; margin: 20px auto; border: 1px solid red; max-width: 500px; text-align: center;">
+    <h2 style="color: red;">🚫 Tu prueba gratuita ha caducado</h2>
+    <p>Activa tu suscripción para seguir usando la aplicación</p>
+
+    <!-- Botón de PayPal -->
+    <div id="paypal-button-container"></div>
+    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
+    <script>
+        paypal.Buttons({
+            style: {
+                shape: 'rect',
+                color: 'gold',
+                layout: 'vertical',
+                label: 'subscribe'
+            },
+            createSubscription: function(data, actions) {
+                return actions.subscription.create({
+                    plan_id: 'P-0YP52904YG949224RNAY3BJY'
+                });
+            },
+            onApprove: function(data, actions) {
+                alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
+                window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
+            }
+        }).render('#paypal-button-container');
+    </script>
+</div>
+{% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
+<div style="background-color: #e0f7fa; padding: 20px; margin: 20px auto; border: 1px solid #00bcd4; max-width: 500px; text-align: center;">
+    <h3>⏳ Tu prueba gratuita finaliza en:</h3>
+    <div id="contador" style="font-size: 20px; font-weight: bold;"></div>
+</div>
+<script>
+    const fechaAlta = new Date("{{ current_user.fecha_alta }}T00:00:00Z");
+    const diasPrueba = 30;
+    const finPrueba = new Date(fechaAlta.getTime() + diasPrueba * 24 * 60 * 60 * 1000);
+
+    function actualizarContador() {
+        const ahora = new Date();
+        const tiempoRestante = finPrueba - ahora;
+
+        if (tiempoRestante <= 0) {
+            document.getElementById("contador").textContent = "🚫 Prueba finalizada";
+            return;
+        }
+
+        const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
+        const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
+        const segundos = Math.floor((tiempoRestante / 1000) % 60);
+
+        document.getElementById("contador").textContent = `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
+    }
+
+    setInterval(actualizarContador, 1000);
+    actualizarContador();
+</script>
+{% endif %}
 
 <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
 
@@ -84,5 +144,27 @@
 
 </body>
 </html>
+<script>
+  const fechaFinal = new Date("{{ fecha_fin_prueba }}").getTime();
+
+  const interval = setInterval(() => {
+    const ahora = new Date().getTime();
+    const tiempoRestante = fechaFinal - ahora;
+
+    if (tiempoRestante <= 0) {
+      document.getElementById("contador").innerHTML = "Tu prueba ha finalizado.";
+      clearInterval(interval);
+      return;
+    }
+
+    const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((tiempoRestante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((tiempoRestante % (1000 * 60)) / 1000);
+
+    document.getElementById("contador").innerHTML =
+      `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+  }, 1000);
+</script>
 
 

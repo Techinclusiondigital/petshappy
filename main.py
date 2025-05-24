@@ -15,6 +15,19 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import logout_user
 from flask_login import current_user
+from functools import wraps
+from flask import redirect, flash
+from flask import Flask, render_template, request, redirect, flash
+
+
+def requiere_suscripcion(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.en_periodo_prueba():
+            flash("🚫 Tu suscripción ha expirado. Renueva para seguir usando la app.")
+            return redirect("/pago")
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 
@@ -40,6 +53,7 @@ class Usuario(db.Model, UserMixin):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     fecha_alta = db.Column(db.Date, default=datetime.utcnow)
+    fecha_pago = db.Column(db.DateTime, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -47,8 +61,11 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def en_periodo_prueba(self):
+    
+def en_periodo_prueba(self):
+    if not self.fecha_pago:
         return datetime.utcnow().date() <= self.fecha_alta + timedelta(days=30)
+    return datetime.utcnow() <= self.fecha_pago + timedelta(days=30)
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -153,6 +170,7 @@ def registrar():
     )  
 @app.route("/mascotas")
 @login_required
+@requiere_suscripcion
 def ver_mascotas():
     q = request.args.get("q")
     if q:
@@ -261,6 +279,7 @@ def dia_semana_espanol(fecha):
 
 @app.route("/agenda")
 @login_required
+@requiere_suscripcion
 def ver_agenda():
     dias_mostrar = 7
     hoy = datetime.today().date()
@@ -446,6 +465,7 @@ def mascotas_sugerencia():
     ])
 @app.route("/ficha/<int:mascota_id>", methods=["GET", "POST"])
 @login_required
+@requiere_suscripcion
 def ficha_mascota(mascota_id):
     mascota = Mascota.query.get_or_404(mascota_id)
 
@@ -551,14 +571,15 @@ from flask_login import login_required, current_user
 
 @app.route("/logout")
 @login_required
+@requiere_suscripcion
 def logout():
     logout_user()
     return redirect("/")
 
 @app.route("/dashboard")
 @login_required
+@requiere_suscripcion
 def dashboard():
-
     dias_mostrar = 7
     hoy = datetime.today().date()
     
@@ -601,7 +622,15 @@ def dashboard():
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
 
-    return render_template("dashboard.html", agenda=agenda_completa)
+    # 🕒 Fecha fin de prueba para el contador
+    fecha_fin_prueba = current_user.fecha_alta + timedelta(days=30)
+
+    return render_template(
+        "dashboard.html",
+        agenda=agenda_completa,
+        fecha_fin_prueba=fecha_fin_prueba.isoformat()
+    )
+
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
 @login_required
@@ -623,13 +652,16 @@ def actualizar_pago(cita_id):
     db.session.commit()
     return redirect("/agenda")
 
-@app.route("/activar")
+@app.route("/suscripcion_exitosa")
 @login_required
-def activar():
-    current_user.fecha_alta = datetime.utcnow().date()
+def suscripcion_exitosa():
+    sub_id = request.args.get("sub_id")
+    current_user.subscripcion_id = sub_id
+    current_user.fecha_suscripcion = datetime.utcnow().date()
     db.session.commit()
-    flash("✅ Cuenta activada. Gracias por tu pago.")
+    flash("✅ Suscripción activada con éxito.")
     return redirect("/dashboard")
+
 
 
 

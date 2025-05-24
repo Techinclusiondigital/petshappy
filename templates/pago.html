@@ -1,61 +1,29 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Activar cuenta - Petshappy</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            text-align: center;
-            padding: 40px;
-        }
+{% extends "base.html" %}
 
-        .box {
-            background: white;
-            max-width: 500px;
-            margin: auto;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #ccc;
-        }
+{% block content %}
+    <h1>🛒 Activar Suscripción</h1>
+    <p>Tu prueba gratuita ha finalizado. Activa tu cuenta para continuar usando Petshappy.</p>
 
-        h1 {
-            color: #00b36b;
-        }
+    <div id="paypal-button-container-P-0YP52904YG949224RNAY3BJY"></div>
 
-        .mensaje {
-            margin: 20px 0;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-
-<div class="box">
-    <h1>Activar cuenta</h1>
-    <p class="mensaje">
-        Tu periodo de prueba ha finalizado.<br>
-        Activa tu cuenta por solo <strong>9.99 €</strong> al mes.
-    </p>
-
-    <!-- PayPal Hosted Button -->
-    <div id="paypal-container-NRA2TVZHZJRDY"></div>
-
-    <p style="margin-top: 30px;">¿Tienes dudas? <a href="mailto:soporte@petshappy.com">Contáctanos</a></p>
-</div>
-
-<!-- PayPal SDK -->
-<script 
-  src="https://www.paypal.com/sdk/js?client-id=BAA54yPaxAW-7B1YwmKeBbASzfn47tK4Aah7hxdOMC0LqJlwNpLBGSAjUoqoCbCStklIWrnDsqrb3FKrBI&components=hosted-buttons&disable-funding=venmo&currency=EUR">
-</script>
-
-<script>
-  paypal.HostedButtons({
-    hostedButtonId: "NRA2TVZHZJRDY",
-  }).render("#paypal-container-NRA2TVZHZJRDY");
-</script>
-
-</body>
-</html>
+    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+    <script>
+      paypal.Buttons({
+          style: {
+              shape: 'rect',
+              color: 'gold',
+              layout: 'vertical',
+              label: 'subscribe'
+          },
+          createSubscription: function(data, actions) {
+            return actions.subscription.create({
+              plan_id: 'P-0YP52904YG949224RNAY3BJY'
+            });
+          },
+          onApprove: function(data, actions) {
+            alert('✅ Suscripción activada. ID: ' + data.subscriptionID);
+            window.location.href = "/suscripcion_exitosa?subscription_id=" + data.subscriptionID;
+          }
+      }).render('#paypal-button-container-P-0YP52904YG949224RNAY3BJY');
+    </script>
+{% endblock %}
