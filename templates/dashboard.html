@@ -47,9 +47,8 @@
     <div id="contador" style="font-size: 20px; font-weight: bold;"></div>
 </div>
 <script>
-    const fechaAlta = new Date("{{ current_user.fecha_alta }}T00:00:00Z");
-    const diasPrueba = 30;
-    const finPrueba = new Date(fechaAlta.getTime() + diasPrueba * 24 * 60 * 60 * 1000);
+   const finPrueba = new Date("{{ fecha_fin_prueba }}T00:00:00Z");
+ 
 
     function actualizarContador() {
         const ahora = new Date();
@@ -145,26 +144,26 @@
 </body>
 </html>
 <script>
-  const fechaFinal = new Date("{{ fecha_fin_prueba }}").getTime();
+    const finPrueba = new Date("{{ fecha_fin_prueba }}T00:00:00Z");
 
-  const interval = setInterval(() => {
-    const ahora = new Date().getTime();
-    const tiempoRestante = fechaFinal - ahora;
+    function actualizarContador() {
+        const ahora = new Date();
+        const tiempoRestante = finPrueba - ahora;
 
-    if (tiempoRestante <= 0) {
-      document.getElementById("contador").innerHTML = "Tu prueba ha finalizado.";
-      clearInterval(interval);
-      return;
+        if (tiempoRestante <= 0) {
+            document.getElementById("contador").textContent = "🚫 Prueba finalizada";
+            return;
+        }
+
+        const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
+        const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
+        const segundos = Math.floor((tiempoRestante / 1000) % 60);
+
+        document.getElementById("contador").textContent = `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
     }
 
-    const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
-    const horas = Math.floor((tiempoRestante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
-    const segundos = Math.floor((tiempoRestante % (1000 * 60)) / 1000);
-
-    document.getElementById("contador").innerHTML =
-      `${dias}d ${horas}h ${minutos}m ${segundos}s`;
-  }, 1000);
+    setInterval(actualizarContador, 1000);
+    actualizarContador();
 </script>
-
 
