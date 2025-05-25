@@ -677,7 +677,7 @@ def agenda():
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
 
-    # 🕒 Fecha fin de prueba para el contador
+    # ✅ CORRECTAMENTE IDENTADO
     fecha_fin_prueba = current_user.fecha_alta + timedelta(days=30)
 
     return render_template(
@@ -685,7 +685,6 @@ def agenda():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
-
 
 
 
