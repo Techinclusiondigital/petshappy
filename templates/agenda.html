@@ -16,10 +16,11 @@
 </div>
 {% endif %}
 
+
 <h2 class="text-center">📅 Agenda de Citas</h2>
 
 <div class="agenda-container">
-    <a href="/cita" class="btn btn-success mb-3">➕ Agendar nueva cita</a>
+    <a href="/cita" class="boton">➕ Agendar nueva cita</a>
 
     {% for fecha, nombre_dia, bloques in agenda %}
         <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
@@ -53,7 +54,7 @@
     {% endfor %}
 </div>
 
-<h3 class="mt-4">📋 Arqueo del día</h3>
+<h3>📋 Arqueo del día</h3>
 <form method="GET" action="/arqueo">
     <button type="submit" class="btn btn-warning">💰 Ver arqueo de caja</button>
 </form>
@@ -102,5 +103,4 @@
 </script>
 {% endif %}
 {% endblock %}
-
 
