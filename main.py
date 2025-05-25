@@ -629,6 +629,61 @@ def dashboard():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
+@app.route("/agenda")
+@login_required
+@requiere_suscripcion
+def agenda():
+    dias_mostrar = 7
+    hoy = datetime.today().date()
+    
+    # Excluir domingos
+    dias_agenda = [
+        hoy + timedelta(days=i)
+        for i in range(dias_mostrar)
+        if (hoy + timedelta(days=i)).weekday() != 6
+    ]
+
+    citas = Cita.query.filter_by(user_id=current_user.id).order_by(Cita.fecha, Cita.hora).all()
+
+    citas_por_fecha = defaultdict(list)
+    for cita in citas:
+        citas_por_fecha[cita.fecha].append(cita)
+
+    agenda_completa = []
+    for dia in dias_agenda:
+        if dia.weekday() == 5:  # Sábado
+            bloques_dia = generar_bloques(
+                dia,
+                datetime.strptime("10:00", "%H:%M").time(),
+                datetime.strptime("12:00", "%H:%M").time(),
+                citas_por_fecha
+            )
+        else:
+            bloques_manana = generar_bloques(
+                dia,
+                datetime.strptime("10:00", "%H:%M").time(),
+                datetime.strptime("14:00", "%H:%M").time(),
+                citas_por_fecha
+            )
+            bloques_tarde = generar_bloques(
+                dia,
+                datetime.strptime("17:00", "%H:%M").time(),
+                datetime.strptime("20:30", "%H:%M").time(),
+                citas_por_fecha
+            )
+            bloques_dia = bloques_manana + bloques_tarde
+
+        agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
+
+    # 🕒 Fecha fin de prueba para el contador
+    fecha_fin_prueba = current_user.fecha_alta + timedelta(days=30)
+
+    return render_template(
+        "agenda.html",
+        agenda=agenda_completa,
+        fecha_fin_prueba=fecha_fin_prueba.isoformat()
+    )
+
 
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
@@ -668,7 +723,6 @@ def suscripcion_exitosa():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-  
 
-app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
