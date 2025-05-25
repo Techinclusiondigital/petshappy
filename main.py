@@ -579,7 +579,7 @@ def logout():
 @app.route("/dashboard")
 @login_required
 @requiere_suscripcion
-def agenda():
+def dashboard():
     dias_mostrar = 7
     hoy = datetime.today().date()
     
