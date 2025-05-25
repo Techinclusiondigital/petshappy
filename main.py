@@ -575,10 +575,11 @@ def logout():
     logout_user()
     return redirect("/")
 
+
 @app.route("/dashboard")
 @login_required
 @requiere_suscripcion
-def dashboard():
+def agenda():
     dias_mostrar = 7
     hoy = datetime.today().date()
     
@@ -629,6 +630,7 @@ def dashboard():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
+
 @app.route("/agenda")
 @login_required
 @requiere_suscripcion
@@ -683,6 +685,7 @@ def agenda():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
+
 
 
 
