@@ -24,7 +24,7 @@
 
     {% for fecha, nombre_dia, bloques in agenda %}
         <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
-          <ul class="list-group mb-3">
+        <ul class="list-group mb-3">
             {% for bloque in bloques %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {% if bloque.enlace %}
@@ -32,21 +32,19 @@
                     {% else %}
                         <strong class="text-danger">{{ bloque.texto }}</strong>
                         {% if bloque.cita_id %}
-                            {% if not bloque.metodo_pago %}
-                  <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" style="margin-top: 5px;">
-             <select name="metodo_pago">
-          <option value="">Método</option>
-          <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
-          <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
-        </select>
-           <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" style="width: 80px;">
-        <button type="submit">💾</button>
-      </form>
-    {% else %}
-      <a href="{{ bloque.enlace }}">Reservar</a>             
-                                {% if bloque.metodo_pago == "efectivo" %} 💵{% elif bloque.metodo_pago == "tarjeta" %} 💳{% endif %}
-                            {% endif %}
-                            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline">
+                            <!-- Formulario para actualizar pago -->
+                            <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
+                                <select name="metodo_pago" class="form-select form-select-sm">
+                                    <option value="">Método</option>
+                                    <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+                                    <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+                                </select>
+                                <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
+                                <button type="submit" class="btn btn-sm btn-success">💾</button>
+                            </form>
+
+                            <!-- Botón para anular cita -->
+                            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
                                 <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
                             </form>
                         {% endif %}
@@ -56,7 +54,7 @@
         </ul>
     {% endfor %}
 </div>
-{% endfor %}
+
 <h3>📋 Arqueo del día</h3>
 <form method="GET" action="/arqueo">
     <button type="submit" class="btn btn-warning">💰 Ver arqueo de caja</button>
