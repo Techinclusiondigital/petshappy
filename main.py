@@ -184,7 +184,12 @@ def ver_mascotas():
 def buscar_mascota():
     if request.method == "POST":
         nombre = request.form["nombre"].strip().lower()
-        mascota = Mascota.query.filter(db.func.lower(Mascota.nombre) == nombre).first()
+        mascota = Mascota.query.filter(
+    db.func.lower(Mascota.nombre) == nombre,
+    Mascota.user_id == current_user.id
+).first()
+
+
         if mascota:
             return redirect(f"/ficha/{mascota.id}")
         else:
@@ -195,7 +200,11 @@ def buscar_mascota():
 def agendar_cita():
     if request.method == "POST":
         nombre_input = request.form["nombre_mascota"].strip().lower()
-        mascota = Mascota.query.filter(db.func.lower(Mascota.nombre) == nombre_input).first()
+        mascota = Mascota.query.filter(
+       db.func.lower(Mascota.nombre) == nombre_input,
+    Mascota.user_id == current_user.id
+).first()
+
 
         if not mascota:
             return redirect(f"/registrar?nombre={nombre_input}&telefono={request.form.get('telefono', '')}&raza={request.form.get('raza', '')}&tamano={request.form.get('tamano', '')}")
