@@ -370,7 +370,10 @@ def api_mascota():
 @app.route("/api/mascotas_sugerencia")
 def mascotas_sugerencia():
     nombre = request.args.get("nombre", "").strip().lower()
-    mascotas = Mascota.query.filter(Mascota.nombre.ilike(f"{nombre}%")).all()
+    mascotas = Mascota.query.filter(
+       db.func.lower(Mascota.nombre) == nombre,
+    Mascota.user_id == current_user.id
+).first()
     return jsonify([
         {
             "id": m.id,
@@ -494,6 +497,7 @@ from flask_login import login_required, current_user
 def logout():
     logout_user()
     return redirect("/")
+
 def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     bloques = []
     hora_actual = datetime.combine(dia, hora_inicio)
@@ -523,7 +527,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
-                    "metodo_pago": cita.metodo_pago
+                    "metodo_pago": cita.metodo_pago,
+                     "precio": cita.precio
                 })
                 hora_actual = fin_cita
                 bloque_ocupado = True
