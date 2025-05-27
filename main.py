@@ -440,6 +440,7 @@ def registro():
 
         nuevo = Usuario(nombre_usuario=nombre, email=email)
         nuevo.set_password(password)
+        nuevo.fecha_alta = datetime.utcnow().date()  # <-- ESTO ES CLAVE
         db.session.add(nuevo)
         db.session.commit()
         login_user(nuevo)
