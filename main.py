@@ -249,7 +249,7 @@ def agendar_cita():
         db.session.add(nueva_cita)
         db.session.commit()
 
-        return redirect("/agenda")
+        return redirect("/dashboard")
 
 
     # GET (mostrar formulario con fecha y hora si vienen en la URL)
@@ -279,99 +279,9 @@ def dia_semana_espanol(fecha):
 @app.route("/agenda")
 @login_required
 @requiere_suscripcion
-def ver_agenda():
-    dias_mostrar = 7
-    hoy = datetime.today().date()
-    
-    # Excluir domingos
-    dias_agenda = [
-        hoy + timedelta(days=i)
-        for i in range(dias_mostrar)
-        if (hoy + timedelta(days=i)).weekday() != 6
-    ]
+def redirigir_agenda():
+    return redirect("/dashboard")
 
-    citas = Cita.query.filter_by(user_id=current_user.id).order_by(Cita.fecha, Cita.hora)
-
-    # Agrupar citas por fecha
-    citas_por_fecha = defaultdict(list)
-    for cita in citas:
-        citas_por_fecha[cita.fecha].append(cita)
-
-    agenda_completa = []
-
-    for dia in dias_agenda:
-        bloques_dia = []
-
-        if dia.weekday() == 5:  # Sábado
-            bloques_dia = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
-                datetime.strptime("12:00", "%H:%M").time(),
-                citas_por_fecha
-            )
-        else:  # Lunes a viernes
-            bloques_manana = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
-                datetime.strptime("12:00", "%H:%M").time(),
-                citas_por_fecha
-            )
-            bloques_tarde = generar_bloques(
-                dia,
-                datetime.strptime("17:00", "%H:%M").time(),
-                datetime.strptime("19:30", "%H:%M").time(),
-                citas_por_fecha
-            )
-            bloques_dia = bloques_manana + bloques_tarde
-
-        agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
-
-    return render_template("agenda.html", agenda=agenda_completa)
-
-def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
-    bloques = []
-    hora_actual = datetime.combine(dia, hora_inicio)
-    fin = datetime.combine(dia, hora_fin)
-    citas_dia = citas_por_fecha.get(dia, [])
-    ocupados = []
-
-    for cita in citas_dia:
-        inicio = datetime.combine(dia, cita.hora)
-        fin_cita = inicio + timedelta(minutes=cita.duracion)
-        ocupados.append((inicio, fin_cita, cita))
-
-    while hora_actual < fin:
-        bloque_ocupado = False
-
-        for inicio, fin_cita, cita in ocupados:
-            if inicio == hora_actual:
-                if cita.metodo_pago == "efectivo":
-                    icono_pago = "💵"
-                elif cita.metodo_pago == "tarjeta":
-                    icono_pago = "💳"
-                else:
-                    icono_pago = "❓"
-
-                bloques.append({
-                    "hora": hora_actual.strftime("%H:%M"),
-                    "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
-                    "enlace": None,
-                    "cita_id": cita.id
-                })
-                hora_actual = fin_cita
-                bloque_ocupado = True
-                break
-
-        if not bloque_ocupado:
-            bloques.append({
-                "hora": hora_actual.strftime("%H:%M"),
-                "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
-                "enlace": f"/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}",
-                "cita_id": None
-            })
-            hora_actual += timedelta(minutes=paso_min)
-
-    return bloques
 
 
 @app.route("/anular_cita/<int:cita_id>", methods=["POST"])
@@ -533,7 +443,7 @@ def registro():
         db.session.add(nuevo)
         db.session.commit()
         login_user(nuevo)
-        return redirect("/agenda")
+        return redirect("/dashboard")
     
     return render_template("registro.html")
 
@@ -574,6 +484,52 @@ from flask_login import login_required, current_user
 def logout():
     logout_user()
     return redirect("/")
+def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
+    bloques = []
+    hora_actual = datetime.combine(dia, hora_inicio)
+    fin = datetime.combine(dia, hora_fin)
+    citas_dia = citas_por_fecha.get(dia, [])
+    ocupados = []
+
+    for cita in citas_dia:
+        inicio = datetime.combine(dia, cita.hora)
+        fin_cita = inicio + timedelta(minutes=cita.duracion)
+        ocupados.append((inicio, fin_cita, cita))
+
+    while hora_actual < fin:
+        bloque_ocupado = False
+
+        for inicio, fin_cita, cita in ocupados:
+            if inicio == hora_actual:
+                if cita.metodo_pago == "efectivo":
+                    icono_pago = "💵"
+                elif cita.metodo_pago == "tarjeta":
+                    icono_pago = "💳"
+                else:
+                    icono_pago = "❓"
+
+                bloques.append({
+                    "hora": hora_actual.strftime("%H:%M"),
+                    "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
+                    "enlace": None,
+                    "cita_id": cita.id,
+                    "metodo_pago": cita.metodo_pago
+                })
+                hora_actual = fin_cita
+                bloque_ocupado = True
+                break
+
+        if not bloque_ocupado:
+            bloques.append({
+                "hora": hora_actual.strftime("%H:%M"),
+                "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
+                "enlace": f"/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}",
+                "cita_id": None,
+                "metodo_pago": None
+            })
+            hora_actual += timedelta(minutes=paso_min)
+
+    return bloques
 
 
 @app.route("/dashboard")
@@ -630,62 +586,6 @@ def dashboard():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
-
-@app.route("/agenda")
-@login_required
-@requiere_suscripcion
-def agenda():
-    dias_mostrar = 7
-    hoy = datetime.today().date()
-    
-    # Excluir domingos
-    dias_agenda = [
-        hoy + timedelta(days=i)
-        for i in range(dias_mostrar)
-        if (hoy + timedelta(days=i)).weekday() != 6
-    ]
-
-    citas = Cita.query.filter_by(user_id=current_user.id).order_by(Cita.fecha, Cita.hora).all()
-
-    citas_por_fecha = defaultdict(list)
-    for cita in citas:
-        citas_por_fecha[cita.fecha].append(cita)
-
-    agenda_completa = []
-    for dia in dias_agenda:
-        if dia.weekday() == 5:  # Sábado
-            bloques_dia = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
-                datetime.strptime("12:00", "%H:%M").time(),
-                citas_por_fecha
-            )
-        else:
-            bloques_manana = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
-                datetime.strptime("14:00", "%H:%M").time(),
-                citas_por_fecha
-            )
-            bloques_tarde = generar_bloques(
-                dia,
-                datetime.strptime("17:00", "%H:%M").time(),
-                datetime.strptime("20:30", "%H:%M").time(),
-                citas_por_fecha
-            )
-            bloques_dia = bloques_manana + bloques_tarde
-
-        agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
-
-    # ✅ CORRECTAMENTE IDENTADO
-    fecha_fin_prueba = current_user.fecha_alta + timedelta(days=30)
-
-    return render_template(
-        "agenda.html",
-        agenda=agenda_completa,
-        fecha_fin_prueba=fecha_fin_prueba.isoformat()
-    )
-
 
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
