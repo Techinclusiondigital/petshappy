@@ -25,11 +25,12 @@
   </div>
 <div class="agenda-container">
     <a href="/cita" class="boton">➕ Agendar nueva cita</a>
-<form method="GET" action="{{ url_for('dashboard') }}" style="margin: 20px 0;">
+<form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
   <label for="fecha">📅 Selecciona una fecha:</label>
   <input type="date" id="fecha" name="fecha" required>
   <button type="submit">Ver agenda</button>
 </form>
+
 
 
     {% for fecha, nombre_dia, bloques in agenda %}
