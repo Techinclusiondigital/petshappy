@@ -14,9 +14,19 @@
 <input type="text" id="duenio" name="duenio" required><br><br>
 
 
-        <label for="raza">Raza:</label><br>
-        <input type="text" name="raza" id="raza" value="{{ raza }}"><br><br>
+     
+  <label for="raza">Raza:</label>
+  <div class ="raza">
+  <input list="razas" name="raza" id="raza" placeholder="Ej. Labrador, Gato persa..." required>
+  <datalist id="razas">
+    {% for raza in RAZAS %}
+      <option value="{{ raza }}">
+    {% endfor %}
+  </datalist>
+</div>
 
+
+<br><br>
         <label for="tamano">Tamaño:</label><br>
         <select name="tamano" id="tamano" required>
             <option value="">Seleccionar</option>

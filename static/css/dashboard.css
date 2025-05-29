@@ -226,3 +226,34 @@ button:hover {
     max-width: 300px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+.logo-sphinx {
+    height: 240px; /* ajusta según necesites */
+    width: auto;   
+}
+
+.imagenes-container {
+  display: flex;
+  justify-content: center; /* opcional: centra horizontalmente */
+  gap: 20px;               /* espacio entre imágenes */
+  flex-wrap: nowrap;       /* evita que se bajen en pantallas grandes */
+  padding: 20px;
+}
+.logo-bulldog {
+    height: 240px; /* ajusta según necesites */
+    width: auto;   
+}
+.logo-galgo {
+    height: 240px; /* ajusta según necesites */
+    width: auto;   
+}
+@media (max-width: 600px) {
+  .logo-sphinx {
+    width: 100px;            /* reduce tamaño en móviles */
+  }
+  .logo-bulldog {
+    width: 100px;     
+  }
+  .logo-galgo {
+   width: 100px;   
+  }
+}

@@ -27,6 +27,14 @@
             list-style: none;
         }
 
+       
+
+.logo-caniche {
+    height: 140px; /* ajusta según necesites */
+    width: auto;
+}
+
+
         .nav-links li {
             margin: 10px 20px;
         }
@@ -108,7 +116,10 @@
 <body>
 
     <header>
+         <div class="header-content">
+        <img src="{{ url_for('static', filename='img/caniche.png') }}" alt="Caniche" class="logo-caniche">
         <h1 class="bienvenido">🐾 Bienvenid@, {{ current_user.nombre_usuario }}</h1>
+    </div>
     </header>
 
     <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
@@ -120,7 +131,7 @@
             <li><a href="/buscar-mascota">Buscar mascota</a></li>
             <li><a href="/cita">Registrar cita</a></li>
             <li><a href="/agenda">Agenda</a></li>
-            <li><a href="/arqueo">Arqueo</a></li>
+            <li><a href="/arqueo">💰 Arqueo de caja</a></li>
             <li><a href="/logout">Cerrar sesión</a></li>
         </ul>
     </nav>

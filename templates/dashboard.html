@@ -18,9 +18,19 @@
 
 
 <h2 class="text-center">📅 Agenda de Citas</h2>
-
+<div class="imagenes-container">
+  <img src="{{ url_for('static', filename='img/sphinx2.png') }}" alt="Sphinx" class="logo-sphinx">
+  <img src="{{ url_for('static', filename='img/bulldog.png') }}" alt="Bulldog" class="logo-bulldog">
+ <img src="{{ url_for('static', filename='img/galgo.png') }}" alt="Galgo" class="logo-galgo">
+  </div>
 <div class="agenda-container">
     <a href="/cita" class="boton">➕ Agendar nueva cita</a>
+<form method="GET" action="{{ url_for('dashboard') }}" style="margin: 20px 0;">
+  <label for="fecha">📅 Selecciona una fecha:</label>
+  <input type="date" id="fecha" name="fecha" required>
+  <button type="submit">Ver agenda</button>
+</form>
+
 
     {% for fecha, nombre_dia, bloques in agenda %}
         <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
@@ -104,5 +114,6 @@
     setInterval(actualizarContador, 1000);
     actualizarContador();
 </script>
+
 {% endif %}
 {% endblock %}

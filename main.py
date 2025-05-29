@@ -43,7 +43,8 @@ def archivo_permitido(filename):
 
 
 # Ruta absoluta al ejecutable wkhtmltopdf
-PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=os.environ.get("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf"))
+#PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=os.environ.get("WKHTMLTOPDF_PATH", "/usr/bin/wkhtmltopdf"))
+PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
 
 
 
@@ -56,6 +57,11 @@ class Usuario(db.Model, UserMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     fecha_alta = db.Column(db.Date, default=datetime.utcnow)
     subscripcion_id = db.Column(db.String(100), nullable=True)  # Asegúrate de incluir esto si estás usando suscripciones
+    nombre_empresa = db.Column(db.String(150))
+    cif = db.Column(db.String(20))
+    telefono = db.Column(db.String(20))
+    direccion = db.Column(db.String(200))
+    codigo_postal = db.Column(db.String(10))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -161,12 +167,43 @@ def registrar():
         db.session.add(nueva_mascota)
         db.session.commit()
         return redirect("/")
-    return render_template("registrar.html",
+
+    # Lista de razas (puedes mover esto a un archivo aparte si lo deseas)
+    RAZAS = [
+        # Razas de Perros
+        "Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
+        "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
+        "Bloodhound", "Bobtail", "Bóxer", "Boston Terrier", "Border Collie", "Borzoi", "Braco Alemán", "Braco de Weimar",
+        "Bulldog Francés", "Bulldog Inglés", "Bullmastiff", "Cairn Terrier", "Caniche (Poodle)", "Caniche Toy",
+        "Cane Corso", "Cavalier King Charles Spaniel", "Chihuahua", "Chow Chow", "Cocker Americano", "Cocker Spaniel Inglés",
+        "Collie", "Dálmata", "Doberman", "Dogo Argentino", "Dogo de Burdeos", "Dogue Alemán (Gran Danés)", "Fox Terrier",
+        "Galgo Español", "Golden Retriever", "Gos d’Atura Català", "Gran Pirineo", "Husky Siberiano", "Jack Russell Terrier",
+        "Labrador Retriever", "Lhasa Apso", "Maltés", "Mastín Español", "Mastín Napolitano", "Papillón", "Pastor Alemán",
+        "Pastor Australiano", "Pastor Belga", "Pastor Blanco Suizo", "Pekinés", "Perro de Agua Español", "Pinscher Miniatura",
+        "Pitbull", "Podenco Ibicenco", "Pointer", "Pomerania", "Presa Canario", "Pug (Carlino)", "Rottweiler", "Samoyedo",
+        "San Bernardo", "Schnauzer", "Scottish Terrier", "Setter Irlandés", "Shar Pei", "Shiba Inu", "Shih Tzu",
+        "Staffordshire Bull Terrier", "Teckel (Dachshund)", "Terranova", "Vizsla", "Weimaraner", "Welsh Corgi", "West Highland White Terrier",
+        "Whippet", "Yorkshire Terrier",
+        # Razas de Gatos
+        "Gato común", "Gato abisinio", "Gato angora turco", "Gato azul ruso", "Gato balinés", "Gato bengalí", "Gato bombay",
+        "Gato bosque de Noruega", "Gato británico de pelo corto", "Gato burmés", "Gato cartujo (Chartreux)", "Gato cornish rex",
+        "Gato devon rex", "Gato egipcio mau", "Gato esfinge (Sphynx)", "Gato exótico de pelo corto", "Gato habana brown",
+        "Gato himalayo", "Gato japonés bobtail", "Gato laPerm", "Gato maine coon", "Gato manx", "Gato munchkin",
+        "Gato oriental de pelo corto", "Gato persa", "Gato ragdoll", "Gato savannah", "Gato siamés", "Gato siberiano",
+        "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van"
+    ]
+
+    return render_template(
+        "registrar.html",
         nombre=request.args.get("nombre", ""),
         telefono=request.args.get("telefono", ""),
         raza=request.args.get("raza", ""),
-        tamano=request.args.get("tamano", "")
-    )  
+        tamano=request.args.get("tamano", ""),
+        RAZAS=RAZAS
+    )
+
+
+
 @app.route("/mascotas")
 @login_required
 @requiere_suscripcion
@@ -344,15 +381,32 @@ def editar_mascota(mascota_id):
     return render_template("editar_mascota.html", mascota=mascota)
 
 @app.route("/arqueo")
+@login_required
+@requiere_suscripcion
 def arqueo():
-    hoy = datetime.today().date()
-    citas_hoy = Cita.query.filter_by(fecha=hoy).all()
+    fecha_str = request.args.get("fecha")
+    
+    if fecha_str:
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+        except ValueError:
+            flash("⚠️ Fecha inválida.")
+            return redirect("/arqueo")
+    else:
+        fecha = datetime.today().date()
 
-    total_efectivo = sum(c.precio for c in citas_hoy if c.metodo_pago == "efectivo")
-    total_tarjeta = sum(c.precio for c in citas_hoy if c.metodo_pago == "tarjeta")
+    citas = Cita.query.filter_by(fecha=fecha, user_id=current_user.id).all()
+
+    total_efectivo = sum(c.precio for c in citas if c.metodo_pago == "efectivo")
+    total_tarjeta = sum(c.precio for c in citas if c.metodo_pago == "tarjeta")
     total = total_efectivo + total_tarjeta
 
-    return render_template("arqueo.html", total_efectivo=total_efectivo, total_tarjeta=total_tarjeta, total=total, hoy=hoy)
+    return render_template("arqueo.html", 
+        total_efectivo=total_efectivo,
+        total_tarjeta=total_tarjeta,
+        total=total,
+        hoy=fecha
+    )
 
 
 
@@ -368,12 +422,14 @@ def api_mascota():
         }
     return jsonify({})
 @app.route("/api/mascotas_sugerencia")
+@login_required
 def mascotas_sugerencia():
     nombre = request.args.get("nombre", "").strip().lower()
     mascotas = Mascota.query.filter(
-       db.func.lower(Mascota.nombre) == nombre,
-    Mascota.user_id == current_user.id
-).first()
+        db.func.lower(Mascota.nombre).ilike(f"{nombre}%"),
+        Mascota.user_id == current_user.id
+    ).all()
+
     return jsonify([
         {
             "id": m.id,
@@ -384,6 +440,8 @@ def mascotas_sugerencia():
         }
         for m in mascotas
     ])
+
+
 @app.route("/ficha/<int:mascota_id>", methods=["GET", "POST"])
 @login_required
 @requiere_suscripcion
@@ -445,19 +503,34 @@ def registro():
         email = request.form["email"]
         password = request.form["password"]
 
-        # Verificar si el nombre de usuario o email ya existen
+        # Nuevos campos
+        nombre_empresa = request.form["nombre_empresa"]
+        cif = request.form["cif"]
+        telefono = request.form["telefono"]
+        direccion = request.form["direccion"]
+        codigo_postal = request.form["codigo_postal"]
+
         if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
             flash("⚠️ El usuario o email ya está registrado.")
             return redirect("/registro")
 
-        nuevo = Usuario(nombre_usuario=nombre, email=email)
+        nuevo = Usuario(
+            nombre_usuario=nombre,
+            email=email,
+            nombre_empresa=nombre_empresa,
+            cif=cif,
+            telefono=telefono,
+            direccion=direccion,
+            codigo_postal=codigo_postal
+        )
         nuevo.set_password(password)
-        nuevo.fecha_alta = datetime.utcnow().date()  # <-- ESTO ES CLAVE
+        nuevo.fecha_alta = datetime.utcnow().date()
         db.session.add(nuevo)
         db.session.commit()
         login_user(nuevo)
-        return redirect("/dashboard")
-    
+        return redirect("/dashboard")  # Esto termina la ejecución del POST
+
+    # Este return va FUERA del if (para cuando sea GET)
     return render_template("registro.html")
 
 from flask import flash
@@ -546,14 +619,24 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
     return bloques
 
-
 @app.route("/dashboard")
 @login_required
 @requiere_suscripcion
 def dashboard():
+    semana = int(request.args.get("semana", 0))  # 0 = semana actual
+    hoy = datetime.today().date() + timedelta(days=7 * semana)
+    fecha_param = request.args.get("fecha")
+
+    if fecha_param:
+        try:
+            fecha_base = datetime.strptime(fecha_param, "%Y-%m-%d").date()
+        except ValueError:
+            fecha_base = datetime.today().date()
+    else:
+        fecha_base = datetime.today().date()
+    hoy = fecha_base + timedelta(days=7 * semana)
     dias_mostrar = 7
-    hoy = datetime.today().date()
-    
+
     # Excluir domingos
     dias_agenda = [
         hoy + timedelta(days=i)
@@ -593,14 +676,16 @@ def dashboard():
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
 
-    # 🕒 Fecha fin de prueba para el contador
-    fecha_fin_prueba = current_user.fecha_alta + timedelta(days=30)
+    # 🕒 Calculamos la fecha fin de prueba
+    if isinstance(current_user.fecha_alta, str):
+        fecha_alta = datetime.strptime(current_user.fecha_alta, "%Y-%m-%d").date()
+    else:
+        fecha_alta = current_user.fecha_alta
 
-    return render_template(
-        "dashboard.html",
-        agenda=agenda_completa,
-        fecha_fin_prueba=fecha_fin_prueba.isoformat()
-    )
+    fecha_fin_prueba = fecha_alta + timedelta(days=30)
+
+    return render_template("dashboard.html", agenda=agenda_completa, fecha_fin_prueba=fecha_fin_prueba)
+
 
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
