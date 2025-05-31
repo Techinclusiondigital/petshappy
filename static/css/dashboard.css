@@ -32,6 +32,7 @@ nav {
     padding: 0;
     margin: 0;
     list-style: none;
+     background-color: #888888;
 }
 
 .nav-links li {
@@ -65,7 +66,7 @@ nav {
     .nav-links {
         display: none;
         flex-direction: column;
-        background-color: #00cc7a;
+         background-color: #888888;
         width: 100%;
     }
 
