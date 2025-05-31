@@ -32,7 +32,8 @@ def requiere_suscripcion(f):
 
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='')
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///peluqueria.db'
 app.secret_key = "tu_clave_secreta"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -118,6 +119,14 @@ class Cita(db.Model):
 
 # RUTAS
 from flask_login import current_user
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+# … (más rutas, si las hubiera) …
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 @app.route("/")
 def inicio():
