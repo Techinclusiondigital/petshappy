@@ -37,6 +37,7 @@ nav {
 
 .nav-links li {
     margin: 10px 20px;
+    background-color: #bbbbbb;
 }
 
 .nav-links a {
