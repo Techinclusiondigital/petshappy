@@ -7,7 +7,7 @@ body {
     text-align: center;
 }
 header {
-    background-color: #00b36b;
+     background-color: white;
     padding: 20px;
     color: white;
 }
@@ -16,13 +16,13 @@ header h1 {
     margin: 0;
 }
 .bienvenido {
-    background-color: #00b36b;
+      background-color: white;
     padding: 20px;
-    color: white;
+    color: black;
 }
 
 nav {
-    background-color: #00cc7a;
+    background-color: #bbbbbb;
 }
 
 .nav-links {
@@ -44,16 +44,16 @@ nav {
     font-weight: bold;
     padding: 10px 15px;
     border-radius: 5px;
-    background-color: #009966;
+      background-color: #bbbbbb;
 }
 
 .nav-links a:hover {
-    background-color: #007a4d;
+     background-color: #e0e0e0;
 }
 
 .menu-toggle {
     display: none;
-    background-color: #009966;
+      background-color: #bbbbbb;
     color: white;
     border: none;
     padding: 10px 20px;
