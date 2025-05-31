@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Agendar Nueva Cita 🐶</h1>
+    <h1>Agendar Nueva Cita </h1>
 
     <form method="POST">
         <label for="nombre_mascota">Nombre de la mascota:</label><br>
@@ -33,7 +33,7 @@
 
         <!-- Registro sugerido si no existe -->
         <div id="registro_no_encontrado" style="display: none;">
-            <p>🐶 No se encontró la mascota. ¿Deseas registrarla?</p>
+            <p>No se encontró la mascota. ¿Deseas registrarla?</p>
             <a id="enlace_registro" href="/registrar?nombre=">
                 <button type="button">Registrar nueva mascota</button>
             </a>
