@@ -46,7 +46,8 @@ nav {
     font-weight: bold;
     padding: 10px 15px;
     border-radius: 5px;
-      background-color: #bbbbbb;
+    background-color: #bbbbbb;
+      border-color: #ffffff;  
 }
 
 .nav-links a:hover {
