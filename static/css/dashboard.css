@@ -226,10 +226,7 @@ button:hover {
     max-width: 300px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
-.logo-sphinx {
-    height: 240px; /* ajusta según necesites */
-    width: auto;   
-}
+
 
 .imagenes-container {
   display: flex;
@@ -238,25 +235,7 @@ button:hover {
   flex-wrap: nowrap;       /* evita que se bajen en pantallas grandes */
   padding: 20px;
 }
-.logo-bulldog {
-    height: 240px; /* ajusta según necesites */
-    width: auto;   
-}
-.logo-galgo {
-    height: 240px; /* ajusta según necesites */
-    width: auto;   
-}
-@media (max-width: 600px) {
-  .logo-sphinx {
-    height: 100px;            /* reduce tamaño en móviles */
-  }
-  .logo-bulldog {
-    height: 100px;     
-  }
-  .logo-galgo {
-   height: 100px;   
-  }
-}
+
 .fecha-form {
   display: flex;
   flex-wrap: wrap;
@@ -287,6 +266,6 @@ button:hover {
 
   .fecha-form input[type="date"],
   .fecha-form button {
-    width: 100%;
+    width: 90%;
   }
 }
