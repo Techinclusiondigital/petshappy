@@ -276,6 +276,9 @@ def agendar_cita():
         notas = request.form["notas"]
         metodo_pago = request.form.get("metodo_pago")
         precio = request.form.get("precio")
+        nombre = request.args.get("nombre", "")
+        telefono = request.args.get("telefono", "")
+        raza = request.args.get("raza", "")
 
         try:
             precio = float(precio.replace(",", ".")) if precio else 0.0
@@ -324,7 +327,15 @@ def agendar_cita():
     fecha = request.args.get("fecha", "")
     hora = request.args.get("hora", "")
 
-    return render_template("agendar_cita.html", fecha=fecha, hora=hora)
+    return render_template(
+    "agendar_cita.html",
+    nombre=nombre,
+    telefono=telefono,
+    raza=raza,
+    tamano=tamano,
+    fecha=fecha,
+    hora=hora
+)
 
 
 
