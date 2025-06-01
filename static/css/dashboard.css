@@ -59,7 +59,9 @@ background-color: #808484;
     flex-grow: 1;
 }
 
-
+.bloque-horario.libre a:hover {
+color: #002b21
+}
 .bloque-horario.ocupado {
     background-color: #fff3f3;
     border-left: 5px solid #dc3545;
@@ -146,17 +148,52 @@ button:hover {
     background-color: #009966;
 }
 
+.fecha-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 30px auto;
+    text-align: center;
+    padding: 10px;
+    max-width: 90%;
+}
+
+.fecha-form label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.fecha-form input[type="date"] {
+    margin-bottom: 15px;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 280px;
+}
+
 .btn-agenda {
-    display: block;
-    margin: 20px auto;
     background-color: #d9534f;
     color: white;
     padding: 10px 20px;
-    font-size: 18px;
+    font-size: 1rem;
     border-radius: 8px;
     border: none;
+    cursor: pointer;
+    width: 100%;
+    max-width: 180px;
 }
 
+.btn-agenda:hover {
+    background-color: #c9302c;
+}
+
+.contador {
+ color: #949ca4;   
+}
 
 .tabla-centrada {
     margin: 0 auto;
@@ -223,26 +260,6 @@ button:hover {
   padding: 20px;
 }
 
-.fecha-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.fecha-form label {
-  font-weight: bold;
-}
-
-.fecha-form input[type="date"],
-.fecha-form button {
-  padding: 8px 12px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
 
 /* Responsive para pantallas pequeñas */
 @media (max-width: 600px) {
