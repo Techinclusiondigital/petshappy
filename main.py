@@ -56,7 +56,7 @@ class Usuario(db.Model, UserMixin):
     nombre_usuario = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    fecha_alta = db.Column(db.Date, default=datetime.utcnow)
+    fecha_alta = db.Column(db.DateTime, default=datetime)
     subscripcion_id = db.Column(db.String(100), nullable=True)  # Asegúrate de incluir esto si estás usando suscripciones
     nombre_empresa = db.Column(db.String(150))
     cif = db.Column(db.String(20))
@@ -583,7 +583,7 @@ def registro():
             codigo_postal=codigo_postal
         )
         nuevo.set_password(password)
-        nuevo.fecha_alta = datetime.utcnow().date()
+        nuevo.fecha_alta = datetime.utcnow()
         db.session.add(nuevo)
         db.session.commit()
         login_user(nuevo)
