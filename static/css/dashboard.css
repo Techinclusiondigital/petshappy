@@ -25,58 +25,7 @@ nav {
     background-color: #bbbbbb;
 }
 
-.nav-links {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-     background-color: white;
-}
 
-.nav-links li {
-    margin: 10px 20px;
-    
-}
-
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    padding: 10px 15px;
-    
-     
-}
-
-.nav-links a:hover {
-     background-color: #e0e0e0;
-}
-
-.menu-toggle {
-    display: none;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-@media (max-width: 768px) {
-    .nav-links {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .nav-links.show {
-        display: flex;
-    }
-
-    .menu-toggle {
-        display: inline-block;
-    }
-}
 h1 {
     color: #009966;
     margin: 30px 0 20px;

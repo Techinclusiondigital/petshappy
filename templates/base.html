@@ -17,18 +17,50 @@
         nav {
             background-color: #bbbbbb;
         }
+.menu-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+    font-family: Arial, sans-serif;
+}
 
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 0;
-            margin: 0;
-            list-style: none;
-            background-color: #bbbbbb;
-        }
+.menu-encabezado .logo {
+    font-weight: bold;
+    font-size: 20px;
+}
 
-       
+.menu-toggle {
+    font-size: 22px;
+    background: none;
+    border: none;
+    display: none;
+    cursor: pointer;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.nav-links li a:hover {
+    background-color: #dcdcdc;
+}
+        
 
 .logo-caniche {
     height: 140px; /* ajusta según necesites */
@@ -36,50 +68,28 @@
 }
 
 
-        .nav-links li {
-            margin: 10px 20px;
-            background-color: white;
-        }
-
-        .nav-links a {
-            color: black;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 10px 15px;
-            
-             
-        }
-
-        .nav-links a:hover {
-            background-color: #999999;
-            
-        }
-
-        .menu-toggle {
-            display: none;
-            background-color: white;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                flex-direction: column;
-                width: 100%;
+          .menu-toggle {
+        display: block;
+    }
 
-            }
+    .nav-links {
+        flex-direction: column;
+        display: none;
+        width: 100%;
+        background-color: #f7f7f7;
+        margin-top: 10px;
+        border-top: 1px solid #ccc;
+    }
 
-            .nav-links.show {
-                display: flex;
-            }
+    .nav-links.show {
+        display: flex;
+    }
 
-            .menu-toggle {
-                display: inline-block;
-            }
+    .nav-links li {
+        text-align: left;
+        padding: 10px 20px;
+    }   
         }
 
         .agenda-container {
@@ -127,17 +137,21 @@
 
     <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
 
-    <nav>
-        <ul class="nav-links" id="navMenu">
-            <li><a href="/registrar">Registrar mascota</a></li>
-            <li><a href="/mascotas">Ver mascotas</a></li>
-            <li><a href="/buscar-mascota">Buscar mascota</a></li>
-            <li><a href="/cita">Registrar cita</a></li>
-            <li><a href="/agenda">Agenda</a></li>
-            <li><a href="/arqueo">💰 Arqueo de caja</a></li>
-            <li><a href="/logout">Cerrar sesión</a></li>
-        </ul>
-    </nav>
+   <!-- Menú responsive -->
+<nav class="menu-encabezado">
+    <div class="logo">Petshappy</div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <ul class="nav-links" id="navMenu">
+        <li><a href="/registrar">Registrar mascota</a></li>
+        <li><a href="/mascotas">Ver mascotas</a></li>
+        <li><a href="/buscar-mascota">Buscar mascota</a></li>
+        <li><a href="/cita">Registrar cita</a></li>
+        <li><a href="/agenda">Agenda</a></li>
+        <li><a href="/arqueo">💰 Arqueo de caja</a></li>
+        <li><a href="/logout">Cerrar sesión</a></li>
+    </ul>
+</nav>
+
 
     <main>
         {% block content %}
