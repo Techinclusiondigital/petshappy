@@ -34,7 +34,8 @@
         <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
         <ul class="list-group mb-3">
             {% for bloque in bloques %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+                <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
+
                     {% if bloque.enlace %}
                         <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
 

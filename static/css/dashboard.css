@@ -12,7 +12,8 @@ header h1 {
     margin: 0;
 }
 .bienvenido {
-      
+     font-family: 'Orbitron', sans-serif;
+  font-weight: 700; 
     padding: 20px;
     color: white;
 }
@@ -33,15 +34,31 @@ h1 {
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
 }
 
-.bloque-libre {
-  display: inline-block;
-  padding: 8px 15px;
-  border: 2px solid #808484;
-  border-radius: 3px;
-  color: #00cc66;
-  text-decoration: none;
-  transition: all 0.3s ease;
+.bloque-horario {
+    width: 100%;
+    border: 1px solid #808484;
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
 }
+
+.bloque-horario.libre a {
+    color: #28a745;
+    font-weight: bold;
+    text-decoration: none;
+    flex-grow: 1;
+}
+
+
+.bloque-horario.ocupado {
+    background-color: #fff3f3;
+    border-left: 5px solid #dc3545;
+}
+
 
 
 h2 {
