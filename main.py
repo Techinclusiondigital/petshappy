@@ -326,7 +326,11 @@ def agendar_cita():
     # GET: Mostrar formulario con fecha y hora si vienen en la URL
     fecha = request.args.get("fecha", "")
     hora = request.args.get("hora", "")
-
+    nombre = request.args.get("nombre", "")
+    telefono = request.args.get("telefono", "")
+    raza = request.args.get("raza", "")
+    tamano = request.args.get("tamano", "")
+    
     return render_template(
     "agendar_cita.html",
     nombre=nombre,
