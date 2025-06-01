@@ -4,6 +4,7 @@
 
 {% block content %}
 {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
+<div class="continuacion">
 <div class="alert alert-danger text-center">
     <h2>🚫 Tu prueba gratuita ha caducado</h2>
     <p>Activa tu suscripción para seguir usando la aplicación</p>
@@ -18,7 +19,7 @@
 
 
 <h2 class="text-center">📅 Agenda de Citas</h2>
-
+</div>
 <div class="agenda-container">
     <a href="/cita" class="boton">➕ Agendar nueva cita</a>
 <form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">

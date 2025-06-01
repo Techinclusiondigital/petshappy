@@ -16,7 +16,9 @@ header h1 {
     padding: 20px;
     color: white;
 }
-
+.continuacion {
+     background: linear-gradient(to bottom, #dcdddd, #e3e3e3); 
+}
 
 
 
