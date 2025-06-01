@@ -175,7 +175,10 @@ def registrar():
 
         db.session.add(nueva_mascota)
         db.session.commit()
-        return redirect("/")
+        fecha_cita = request.form.get("fecha", "")
+        hora_cita = request.form.get("hora", "")
+
+        return redirect(f"/cita?fecha={fecha_cita}&hora={hora_cita}&nombre={nueva_mascota.nombre}")
 
     # Lista de razas (puedes mover esto a un archivo aparte si lo deseas)
     RAZAS = [
@@ -208,6 +211,8 @@ def registrar():
         telefono=request.args.get("telefono", ""),
         raza=request.args.get("raza", ""),
         tamano=request.args.get("tamano", ""),
+        fecha=request.args.get("fecha", ""),
+        hora=request.args.get("hora", ""),
         RAZAS=RAZAS
     )
 
@@ -243,19 +248,28 @@ def buscar_mascota():
     return render_template("buscar_mascota.html")
 
 @app.route("/cita", methods=["GET", "POST"])
+@login_required
 def agendar_cita():
     if request.method == "POST":
         nombre_input = request.form["nombre_mascota"].strip().lower()
+
         mascota = Mascota.query.filter(
-       db.func.lower(Mascota.nombre) == nombre_input,
-    Mascota.user_id == current_user.id
-).first()
+            db.func.lower(Mascota.nombre) == nombre_input,
+            Mascota.user_id == current_user.id
+        ).first()
 
-
+        # Si no existe la mascota, redirige al registro con datos precargados
         if not mascota:
-            return redirect(f"/registrar?nombre={nombre_input}&telefono={request.form.get('telefono', '')}&raza={request.form.get('raza', '')}&tamano={request.form.get('tamano', '')}")
+            return redirect(
+                f"/registrar?nombre={nombre_input}"
+                f"&telefono={request.form.get('telefono', '')}"
+                f"&raza={request.form.get('raza', '')}"
+                f"&tamano={request.form.get('tamano', '')}"
+                f"&fecha={request.form.get('fecha', '')}"
+                f"&hora={request.form.get('hora', '')}"
+            )
 
-        # Obtener los datos del formulario
+        # Obtener datos del formulario
         fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
         hora = datetime.strptime(request.form["hora"], "%H:%M").time()
         tamano = request.form["tamano"]
@@ -268,7 +282,7 @@ def agendar_cita():
         except ValueError:
             precio = 0.0
 
-        # Determinar duración según el tamaño
+        # Duración según tamaño
         if tamano == "pequeno":
             duracion = 60
         elif tamano == "mediano":
@@ -276,12 +290,12 @@ def agendar_cita():
         elif tamano == "grande":
             duracion = 90
         else:
-            duracion = 60  # Por defecto
+            duracion = 60  # Valor por defecto
 
         hora_inicio = datetime.combine(fecha, hora)
         hora_fin = hora_inicio + timedelta(minutes=duracion)
 
-        # Verificar solapamiento de citas existentes
+        # Verificar solapamientos
         citas = Cita.query.filter_by(fecha=fecha).all()
         for c in citas:
             c_inicio = datetime.combine(c.fecha, c.hora)
@@ -289,7 +303,7 @@ def agendar_cita():
             if hora_inicio < c_fin and hora_fin > c_inicio:
                 return "❌ Ya hay una cita en ese horario."
 
-        # Guardar nueva cita
+        # Crear y guardar cita
         nueva_cita = Cita(
             mascota_id=mascota.id,
             fecha=fecha,
@@ -306,11 +320,14 @@ def agendar_cita():
 
         return redirect("/dashboard")
 
-
-    # GET (mostrar formulario con fecha y hora si vienen en la URL)
+    # GET: Mostrar formulario con fecha y hora si vienen en la URL
     fecha = request.args.get("fecha", "")
     hora = request.args.get("hora", "")
+
     return render_template("agendar_cita.html", fecha=fecha, hora=hora)
+
+
+
 
 
 
