@@ -136,9 +136,9 @@ def inicio():
 
 
 @app.route("/registrar", methods=["GET", "POST"])
+@login_required
 def registrar():
     if request.method == "POST":
-        # 📸 Obtener archivos de imagen
         foto_antes = request.files.get("foto_antes")
         foto_despues = request.files.get("foto_despues")
 
@@ -153,11 +153,9 @@ def registrar():
             filename_despues = secure_filename(foto_despues.filename)
             foto_despues.save(os.path.join(app.config['UPLOAD_FOLDER'], filename_despues))
 
-        # 📅 Convertir fecha opcional
         fecha = request.form.get("edad")
         fecha_nacimiento = datetime.strptime(fecha, "%Y-%m-%d").date() if fecha else None
 
-        # ✅ Crear nueva mascota
         nueva_mascota = Mascota(
             nombre=request.form["nombre"],
             tamano=request.form["tamano"],
@@ -175,14 +173,35 @@ def registrar():
 
         db.session.add(nueva_mascota)
         db.session.commit()
-        fecha_cita = request.form.get("fecha", "")
-        hora_cita = request.form.get("hora", "")
 
-        return redirect(f"/cita?fecha={fecha_cita}&hora={hora_cita}&nombre={nueva_mascota.nombre}")
+        fecha_cita = request.args.get("fecha", "")
+        hora_cita = request.args.get("hora", "")
 
-    # Lista de razas (puedes mover esto a un archivo aparte si lo deseas)
+        if fecha_cita and hora_cita:
+            try:
+                fecha_dt = datetime.strptime(fecha_cita, "%Y-%m-%d").date()
+                hora_dt = datetime.strptime(hora_cita, "%H:%M").time()
+                duracion = 60 if nueva_mascota.tamano == "pequeno" else 75 if nueva_mascota.tamano == "mediano" else 90
+
+                nueva_cita = Cita(
+                    mascota_id=nueva_mascota.id,
+                    fecha=fecha_dt,
+                    hora=hora_dt,
+                    tamano=nueva_mascota.tamano,
+                    duracion=duracion,
+                    notas=request.args.get("notas", ""),
+                    metodo_pago=request.args.get("metodo_pago", ""),
+                    precio=float(request.args.get("precio", 0)),
+                    user_id=current_user.id
+                )
+                db.session.add(nueva_cita)
+                db.session.commit()
+            except Exception as e:
+                print(f"Error al crear cita automática: {e}")
+
+        return redirect("/dashboard")
+
     RAZAS = [
-        # Razas de Perros
         "Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
         "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
         "Bloodhound", "Bobtail", "Bóxer", "Boston Terrier", "Border Collie", "Borzoi", "Braco Alemán", "Braco de Weimar",
@@ -196,7 +215,6 @@ def registrar():
         "San Bernardo", "Schnauzer", "Scottish Terrier", "Setter Irlandés", "Shar Pei", "Shiba Inu", "Shih Tzu",
         "Staffordshire Bull Terrier", "Teckel (Dachshund)", "Terranova", "Vizsla", "Weimaraner", "Welsh Corgi", "West Highland White Terrier",
         "Whippet", "Yorkshire Terrier",
-        # Razas de Gatos
         "Gato común", "Gato abisinio", "Gato angora turco", "Gato azul ruso", "Gato balinés", "Gato bengalí", "Gato bombay",
         "Gato bosque de Noruega", "Gato británico de pelo corto", "Gato burmés", "Gato cartujo (Chartreux)", "Gato cornish rex",
         "Gato devon rex", "Gato egipcio mau", "Gato esfinge (Sphynx)", "Gato exótico de pelo corto", "Gato habana brown",
@@ -205,18 +223,18 @@ def registrar():
         "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van"
     ]
 
-    return render_template(
-        "registrar.html",
+    return render_template("registrar.html",
         nombre=request.args.get("nombre", ""),
         telefono=request.args.get("telefono", ""),
         raza=request.args.get("raza", ""),
         tamano=request.args.get("tamano", ""),
         fecha=request.args.get("fecha", ""),
         hora=request.args.get("hora", ""),
+        notas=request.args.get("notas", ""),
+        metodo_pago=request.args.get("metodo_pago", ""),
+        precio=request.args.get("precio", ""),
         RAZAS=RAZAS
     )
-
-
 
 @app.route("/mascotas")
 @login_required
@@ -330,7 +348,7 @@ def agendar_cita():
     telefono = request.args.get("telefono", "")
     raza = request.args.get("raza", "")
     tamano = request.args.get("tamano", "")
-    
+
     return render_template(
     "agendar_cita.html",
     nombre=nombre,

@@ -105,4 +105,9 @@ body {
         padding: 10px 20px;
         font-size: 16px;
     }
+    .wp-block-video {
+        margin:auto;
+        text-align: center;
+        width: 90%;
+    }
 }

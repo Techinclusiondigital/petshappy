@@ -18,7 +18,9 @@ header h1 {
     color: white;
     font-size: 36px;
 }
-
+h4 {
+color: #949ca4;
+}
 
 
 h1 {
@@ -46,9 +48,12 @@ h1 {
     align-items: center;
     background-color: white;
 }
+.bloque-horario:hover {
+background-color: #808484;
+}
 
 .bloque-horario.libre a {
-    color: #28a745;
+    color: #009966;
     font-weight: bold;
     text-decoration: none;
     flex-grow: 1;
@@ -140,6 +145,18 @@ button:hover {
 .boton:hover {
     background-color: #009966;
 }
+
+.btn-agenda {
+    display: block;
+    margin: 20px auto;
+    background-color: #d9534f;
+    color: white;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+}
+
 
 .tabla-centrada {
     margin: 0 auto;

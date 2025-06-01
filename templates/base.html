@@ -40,7 +40,7 @@ header {
     list-style: none;
     margin: 0;
     padding: 0;
-    color: #323f48;
+    color: #343c4a;
 }
 
 .nav-links li a {
@@ -69,7 +69,7 @@ header {
 
         @media (max-width: 768px) {
           .menu-toggle {
-        display: block;
+        display: flex;
     }
 
     .nav-links {
@@ -135,8 +135,6 @@ header {
         <h1 class="bienvenido">Bienvenid@ a Petshappy, {{ current_user.nombre_usuario }}</h1>
     </div>
     
-
-    <button class="menu-toggle" onclick="toggleMenu()">☰ Menú</button>
 
    <!-- Menú responsive -->
 <nav class="menu-encabezado">
