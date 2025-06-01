@@ -23,7 +23,6 @@
     align-items: center;
     background-color: white;
     padding: 15px 30px;
-    border-bottom: 1px solid #ccc;
     font-family: Arial, sans-serif;
 }
 
@@ -47,7 +46,7 @@
 
 .nav-links li a {
     text-decoration: none;
-    color: black;
+    color: #323f48;
     font-weight: bold;
     padding: 6px 10px;
     transition: background-color 0.3s, font-size 0.3s;
@@ -60,7 +59,9 @@
      font-size: 16px;
 }
         
-
+.color-content {
+  background: linear-gradient(to bottom, #7a8187, #e3e3e3);   
+}
 .logo-caniche {
     height: 140px; /* ajusta según necesites */
     width: auto;
@@ -76,9 +77,7 @@
         flex-direction: column;
         display: none;
         width: 100%;
-        background-color: #f7f7f7;
         margin-top: 10px;
-        border-top: 1px solid #ccc;
     }
 
     .nav-links.show {
@@ -128,6 +127,7 @@
 <body>
 
     <header>
+        <div class="color-content">
          <div class="header-content">
         <img src="{{ url_for('static', filename='img/caniche.png') }}" alt="Caniche" class="logo-caniche">
         <h1 class="bienvenido">Bienvenid@ a Petshappy, {{ current_user.nombre_usuario }}</h1>
@@ -149,7 +149,7 @@
         <li><a href="/logout">Cerrar sesión</a></li>
     </ul>
 </nav>
-
+</div>
 
     <main>
         {% block content %}
