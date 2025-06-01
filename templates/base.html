@@ -27,10 +27,7 @@
     font-family: Arial, sans-serif;
 }
 
-.menu-encabezado .logo {
-    font-weight: bold;
-    font-size: 20px;
-}
+
 
 .menu-toggle {
     font-size: 22px;
@@ -139,7 +136,6 @@
 
    <!-- Menú responsive -->
 <nav class="menu-encabezado">
-    <div class="logo">Petshappy</div>
     <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     <ul class="nav-links" id="navMenu">
         <li><a href="/registrar">Registrar mascota</a></li>
@@ -160,11 +156,12 @@
     </main>
 
     <script>
-        function toggleMenu() {
-            const menu = document.getElementById("navMenu");
-            menu.classList.toggle("show");
-        }
-    </script>
+    function toggleMenu() {
+        const navMenu = document.getElementById("navMenu");
+        navMenu.classList.toggle("show");
+    }
+</script>
+
 {% block scripts %}
 <!-- Aquí irán scripts adicionales desde las páginas hijas -->
 {% endblock %}
