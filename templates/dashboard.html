@@ -36,7 +36,8 @@
             {% for bloque in bloques %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {% if bloque.enlace %}
-                        <a href="{{ bloque.enlace }}">{{ bloque.texto }}</a>
+                        <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
+
                     {% else %}
                         <strong class="text-danger">{{ bloque.texto }}</strong>
                         {% if bloque.cita_id %}
