@@ -15,113 +15,101 @@
       <div id="contador" style="font-size: 16px; font-weight: bold;"></div>
     </div>
   {% endif %}
-{% endblock %}
 
+  <h2 class="text-center">📅 Agenda de Citas</h2>
 
-
-
-<h2 class="text-center">📅 Agenda de Citas</h2>
-
-<div class="agenda-container">
+  <div class="agenda-container">
     <a href="/cita" class="boton">➕ Agendar nueva cita</a>
-<form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
-  <label for="fecha">📅 Selecciona una fecha:</label>
-  <input type="date" id="fecha" name="fecha" required>
-  <button class="btn-agenda">Ver agenda</button>
-</form>
-
-
+    <form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
+      <label for="fecha">📅 Selecciona una fecha:</label>
+      <input type="date" id="fecha" name="fecha" required>
+      <button class="btn-agenda">Ver agenda</button>
+    </form>
 
     {% for fecha, nombre_dia, bloques in agenda %}
-        <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
-        <ul class="list-group mb-3">
-            {% for bloque in bloques %}
-                <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
-
-                    {% if bloque.enlace %}
-                        <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
-
-                    {% else %}
-                        <strong class="text-danger">{{ bloque.texto }}</strong>
-                        {% if bloque.cita_id %}
-                            <!-- Formulario para actualizar pago -->
-                            <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
-                                <select name="metodo_pago" class="form-select form-select-sm">
-                                    <option value="">Método</option>
-                                    <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
-                                    <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
-                                </select>
-                                <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
-                                <button type="submit" class="btn btn-sm btn-success">💾</button>
-                            </form>
-
-                            <!-- Botón para anular cita -->
-                            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
-                                <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
-                            </form>
-                        {% endif %}
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
+      <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
+      <ul class="list-group mb-3">
+        {% for bloque in bloques %}
+          <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
+            {% if bloque.enlace %}
+              <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
+            {% else %}
+              <strong class="text-danger">{{ bloque.texto }}</strong>
+              {% if bloque.cita_id %}
+                <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
+                  <select name="metodo_pago" class="form-select form-select-sm">
+                    <option value="">Método</option>
+                    <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+                    <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+                  </select>
+                  <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
+                  <button type="submit" class="btn btn-sm btn-success">💾</button>
+                </form>
+                <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
+                  <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
     {% endfor %}
-</div>
+  </div>
 
-<h3>📋 Arqueo del día</h3>
-<form method="GET" action="/arqueo">
+  <h3>📋 Arqueo del día</h3>
+  <form method="GET" action="/arqueo">
     <button type="submit" class="btn btn-warning">💰 Ver arqueo de caja</button>
-    <br><br>
-    <br><br>
-</form>
+  </form>
 
+{% endblock %}
 
 {% block scripts %}
-{% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
-<script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
-<script>
-    paypal.Buttons({
+  {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
+    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
+    <script>
+      paypal.Buttons({
         style: {
-            shape: 'rect',
-            color: 'gold',
-            layout: 'vertical',
-            label: 'subscribe'
+          shape: 'rect',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
         },
         createSubscription: function(data, actions) {
-            return actions.subscription.create({
-                plan_id: 'P-0YP52904YG949224RNAY3BJY'
-            });
+          return actions.subscription.create({
+            plan_id: 'P-0YP52904YG949224RNAY3BJY'
+          });
         },
         onApprove: function(data, actions) {
-            alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
-            window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
+          alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
+          window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
         }
-    }).render('#paypal-button-container');
-</script>
-{% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
-<script>
-  const finPrueba = new Date("{{ fecha_fin_prueba }}");
+      }).render('#paypal-button-container');
+    </script>
+  {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
+    <script>
+      const finPrueba = new Date("{{ fecha_fin_prueba }}");
 
-  function actualizarContador() {
-    const ahora = new Date();
-    const tiempoRestante = finPrueba - ahora;
+      function actualizarContador() {
+        const ahora = new Date();
+        const tiempoRestante = finPrueba - ahora;
 
-    if (tiempoRestante <= 0) {
-      document.getElementById("contador").textContent = "🚫 Prueba finalizada";
-      return;
-    }
+        if (tiempoRestante <= 0) {
+          document.getElementById("contador").textContent = "🚫 Prueba finalizada";
+          return;
+        }
 
-    const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
-    const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
-    const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
-    const segundos = Math.floor((tiempoRestante / 1000) % 60);
+        const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+        const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
+        const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
+        const segundos = Math.floor((tiempoRestante / 1000) % 60);
 
-    document.getElementById("contador").textContent =
-      `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
-  }
+        document.getElementById("contador").textContent =
+          `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
+      }
 
-  setInterval(actualizarContador, 1000);
-  actualizarContador();
-</script>
-
-{% endif %}
+      setInterval(actualizarContador, 1000);
+      actualizarContador();
+    </script>
+  {% endif %}
 {% endblock %}
+
