@@ -72,18 +72,14 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
- 
+    def en_periodo_prueba(self):
+        ahora = datetime.now(timezone.utc)
+        if self.fecha_alta.tzinfo is None:
+            fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
+        else:
+            fecha_alta_aware = self.fecha_alta
 
-def en_periodo_prueba(self):
-    ahora = datetime.now(timezone.utc)
-    # Forzar que fecha_alta sea aware en UTC
-    if self.fecha_alta.tzinfo is None:
-        fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
-    else:
-        fecha_alta_aware = self.fecha_alta
-
-    return ahora <= fecha_alta_aware + timedelta(days=30)
-
+        return ahora <= fecha_alta_aware + timedelta(days=30)
 
 
 @login_manager.user_loader
