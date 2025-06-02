@@ -686,11 +686,13 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
     return bloques
 
+from datetime import datetime, timedelta, timezone
+
 @app.route("/dashboard")
 @login_required
 @requiere_suscripcion
 def dashboard():
-    semana = int(request.args.get("semana", 0))  # 0 = semana actual
+    semana = int(request.args.get("semana", 0))
     hoy = datetime.today().date() + timedelta(days=7 * semana)
     fecha_param = request.args.get("fecha")
 
@@ -701,6 +703,7 @@ def dashboard():
             fecha_base = datetime.today().date()
     else:
         fecha_base = datetime.today().date()
+
     hoy = fecha_base + timedelta(days=7 * semana)
     dias_mostrar = 7
 
@@ -743,13 +746,11 @@ def dashboard():
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
 
-    # 🕒 Calculamos la fecha fin de prueba
-    if isinstance(current_user.fecha_alta, str):
-        fecha_alta = datetime.strptime(current_user.fecha_alta, "%Y-%m-%d %H:%M:%S")
-    else:
-        fecha_alta = current_user.fecha_alta
+    # 📆 Calcular fin de prueba con zona horaria UTC
+    fecha_alta = current_user.fecha_alta
+    if fecha_alta.tzinfo is None:
+        fecha_alta = fecha_alta.replace(tzinfo=timezone.utc)
 
-    # Calcular fecha fin de prueba
     fecha_fin_prueba = fecha_alta + timedelta(days=30)
 
     return render_template(
