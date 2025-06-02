@@ -57,7 +57,7 @@ class Usuario(db.Model, UserMixin):
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
     fecha_alta = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    subscripcion_id = db.Column(db.String(100), nullable=True)  # Asegúrate de incluir esto si estás usando suscripciones
+    subscripcion_id = db.Column(db.String(100), nullable=True)
     nombre_empresa = db.Column(db.String(150))
     cif = db.Column(db.String(20))
     telefono = db.Column(db.String(20))
@@ -70,15 +70,9 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    
-
-def en_periodo_prueba(self):
-    ahora = datetime.now(timezone.utc)
-    return ahora <= self.fecha_alta + timedelta(days=30)
-
-    
-login_manager = LoginManager(app)
-login_manager.login_view = "login"
+    def en_periodo_prueba(self):
+        ahora = datetime.now(timezone.utc)
+        return ahora <= self.fecha_alta + timedelta(days=30)
 
 
 @login_manager.user_loader
