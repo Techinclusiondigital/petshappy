@@ -50,6 +50,8 @@ PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=os.environ.get("WKHTMLTOPDF_PAT
 
 
 db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 class Usuario(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -78,7 +80,6 @@ class Usuario(db.Model, UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
-
 # MODELOS
 class Mascota(db.Model):
     id = db.Column(db.Integer, primary_key=True)
