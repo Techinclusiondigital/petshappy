@@ -18,7 +18,7 @@ from flask_login import current_user
 from functools import wraps
 from flask import redirect, flash
 from flask import Flask, render_template, request, redirect, flash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def requiere_suscripcion(f):
@@ -56,7 +56,7 @@ class Usuario(db.Model, UserMixin):
     nombre_usuario = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    fecha_alta = db.Column(db.DateTime, default=datetime)
+    fecha_alta = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     subscripcion_id = db.Column(db.String(100), nullable=True)  # Asegúrate de incluir esto si estás usando suscripciones
     nombre_empresa = db.Column(db.String(150))
     cif = db.Column(db.String(20))
@@ -70,8 +70,12 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def en_periodo_prueba(self):
-        return datetime.utcnow().date() <= self.fecha_alta + timedelta(days=30)
+    
+
+def en_periodo_prueba(self):
+    ahora = datetime.now(timezone.utc)
+    return ahora <= self.fecha_alta + timedelta(days=30)
+
     
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -737,14 +741,18 @@ def dashboard():
 
     # 🕒 Calculamos la fecha fin de prueba
     if isinstance(current_user.fecha_alta, str):
-        fecha_alta = datetime.strptime(current_user.fecha_alta, "%Y-%m-%d").date()
+        fecha_alta = datetime.strptime(current_user.fecha_alta, "%Y-%m-%d %H:%M:%S")
     else:
         fecha_alta = current_user.fecha_alta
 
+    # Calcular fecha fin de prueba
     fecha_fin_prueba = fecha_alta + timedelta(days=30)
 
-    return render_template("dashboard.html", agenda=agenda_completa, fecha_fin_prueba=fecha_fin_prueba)
-
+    return render_template(
+        "dashboard.html",
+        agenda=agenda_completa,
+        fecha_fin_prueba=fecha_fin_prueba.isoformat()
+    )
 
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
