@@ -73,13 +73,14 @@ class Usuario(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
     def en_periodo_prueba(self):
-        ahora = datetime.now(timezone.utc)
-        if self.fecha_alta.tzinfo is None:
-            fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
-        else:
-            fecha_alta_aware = self.fecha_alta
+        return False
+       # ahora = datetime.now(timezone.utc)
+       # if self.fecha_alta.tzinfo is None:
+            #fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
+        #else:
+            #fecha_alta_aware = self.fecha_alta
 
-        return ahora <= fecha_alta_aware + timedelta(days=30)
+        #return ahora <= fecha_alta_aware + timedelta(days=30)
 
 
 @login_manager.user_loader
@@ -411,6 +412,16 @@ def editar_cita(cita_id):
         return redirect(f"/ficha/{cita.mascota.id}")
 
     return render_template("editar_cita.html", cita=cita)
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/registro", methods=["GET", "POST"])
+def registro():
+    return "Página de registro"
+
+
 @app.route("/ficha_pdf/<int:mascota_id>")
 def ficha_pdf(mascota_id):
     mascota = Mascota.query.get_or_404(mascota_id)
