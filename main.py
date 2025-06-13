@@ -74,7 +74,7 @@ class Usuario(db.Model, UserMixin):
 
     def en_periodo_prueba(self):
         return False
-       # ahora = datetime.now(timezone.utc)
+        #ahora = datetime.now(timezone.utc)
        # if self.fecha_alta.tzinfo is None:
             #fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
         #else:
