@@ -413,13 +413,7 @@ def editar_cita(cita_id):
 
     return render_template("editar_cita.html", cita=cita)
 
-@app.route("/")
-def home():
-    return render_template("index.html")
 
-@app.route("/registro", methods=["GET", "POST"])
-def registro():
-    return "Página de registro"
 
 
 @app.route("/ficha_pdf/<int:mascota_id>")
