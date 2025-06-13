@@ -79,9 +79,11 @@ color: #002b21
     flex-direction: column;
     margin-top: 20px;
 }
-#paypal-button-container {
+.paypal-button-container {
     width: 100%;
     max-width: 400px;
+    margin: auto;
+    text-align: center;
 }
 
 h2 {
