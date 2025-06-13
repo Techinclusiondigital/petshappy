@@ -48,6 +48,17 @@
                 <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
                   <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
                 </form>
+                {% if bloque.cita_id %}
+  {% set mascota = bloque.mascota %}
+  {% set telefono = mascota.telefono.replace(" ", "").replace("-", "") %}
+  {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ mascota.nombre ~ " a las " ~ bloque.hora %}
+  <a class="btn btn-success btn-sm"
+     target="_blank"
+     href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
+     📲 Recordar por WhatsApp
+  </a>
+{% endif %}
+
               {% endif %}
             {% endif %}
           </li>

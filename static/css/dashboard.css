@@ -67,7 +67,22 @@ color: #002b21
     border-left: 5px solid #dc3545;
 }
 
+.alert-danger {
+    padding: 5px;
 
+}
+
+.paypal-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 20px;
+}
+#paypal-button-container {
+    width: 100%;
+    max-width: 400px;
+}
 
 h2 {
     color: #444;

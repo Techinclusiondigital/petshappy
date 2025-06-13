@@ -19,7 +19,7 @@ from functools import wraps
 from flask import redirect, flash
 from flask import Flask, render_template, request, redirect, flash
 from datetime import datetime, timedelta, timezone
-
+import smtplib
 
 def requiere_suscripcion(f):
     @wraps(f)
@@ -65,7 +65,7 @@ class Usuario(db.Model, UserMixin):
     telefono = db.Column(db.String(20))
     direccion = db.Column(db.String(200))
     codigo_postal = db.Column(db.String(10))
-
+    token_recuperacion = db.Column(db.String(200), nullable=True)
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -81,6 +81,22 @@ class Usuario(db.Model, UserMixin):
             #fecha_alta_aware = self.fecha_alta
 
         #return ahora <= fecha_alta_aware + timedelta(days=30)
+
+import smtplib
+from email.mime.text import MIMEText
+
+def enviar_email(destinatario, asunto, contenido_html):
+    remitente = "techinclusiondigital@gmail.com"
+    password = "mbgo lqoh fjha xbdu"  # Generada en tu cuenta Gmail (contraseña de aplicación)
+
+    msg = MIMEText(contenido_html, "html")
+    msg["Subject"] = asunto
+    msg["From"] = remitente
+    msg["To"] = destinatario
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(remitente, password)
+        server.sendmail(remitente, destinatario, msg.as_string())
 
 
 @login_manager.user_loader
@@ -240,6 +256,69 @@ def registrar():
         precio=request.args.get("precio", ""),
         RAZAS=RAZAS
     )
+
+@app.route("/recuperar", methods=["GET", "POST"])
+def recuperar():
+    if request.method == "POST":
+        email = request.form["email"]
+        user = Usuario.query.filter_by(email=email).first()
+        if user:
+            s = URLSafeTimedSerializer(app.secret_key)
+            token = s.dumps(user.email, salt="recuperar-clave")
+            user.token_recuperacion = token
+            db.session.commit()
+
+            enlace = url_for("reset_password", token=token, _external=True)
+            cuerpo = f"""
+            <h3>Restablecer contraseña</h3>
+            <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+            <a href="{enlace}">Restablecer contraseña</a>
+            """
+            enviar_email(user.email, "Recuperación de contraseña - Petshappy", cuerpo)
+            flash("📧 Se ha enviado un enlace de recuperación a tu correo.")
+        else:
+            flash("❌ No se encontró un usuario con ese correo.")
+        return redirect("/login")
+
+    return render_template("recuperar.html")
+
+@app.route("/reset/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    s = URLSafeTimedSerializer(app.secret_key)
+    try:
+        email = s.loads(token, salt="recuperar-clave", max_age=3600)
+    except Exception:
+        flash("⚠️ El enlace ha expirado o es inválido.")
+        return redirect("/login")
+
+    user = Usuario.query.filter_by(email=email).first()
+
+    if request.method == "POST":
+        nueva = request.form["password"]
+        user.set_password(nueva)
+        user.token_recuperacion = None
+        db.session.commit()
+        flash("✅ Contraseña actualizada correctamente.")
+        return redirect("/login")
+
+    return render_template("reset_password.html")
+
+
+import smtplib
+from email.mime.text import MIMEText
+
+def enviar_email(destinatario, asunto, contenido_html):
+    remitente = "tucorreo@gmail.com"
+    password = "tu_contraseña_app"  # usa una contraseña de aplicación
+
+    msg = MIMEText(contenido_html, "html")
+    msg["Subject"] = asunto
+    msg["From"] = remitente
+    msg["To"] = destinatario
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(remitente, password)
+        server.sendmail(remitente, destinatario, msg.as_string())
 
 @app.route("/mascotas")
 @login_required
@@ -570,12 +649,10 @@ def registro():
         nombre = request.form["nombre_usuario"]
         email = request.form["email"]
         password = request.form["password"]
-
-        # Nuevos campos
         nombre_empresa = request.form["nombre_empresa"]
+        direccion = request.form["direccion"]
         cif = request.form["cif"]
         telefono = request.form["telefono"]
-        direccion = request.form["direccion"]
         codigo_postal = request.form["codigo_postal"]
 
         if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
@@ -586,20 +663,43 @@ def registro():
             nombre_usuario=nombre,
             email=email,
             nombre_empresa=nombre_empresa,
+            direccion=direccion,
             cif=cif,
             telefono=telefono,
-            direccion=direccion,
             codigo_postal=codigo_postal
         )
         nuevo.set_password(password)
-        nuevo.fecha_alta = datetime.utcnow()
+        nuevo.fecha_alta = datetime.utcnow().date()
         db.session.add(nuevo)
         db.session.commit()
-        login_user(nuevo)
-        return redirect("/dashboard")  # Esto termina la ejecución del POST
 
-    # Este return va FUERA del if (para cuando sea GET)
+        # ✅ Enviar correo al administrador
+        admin_msg = f"""
+        <h2>📥 Nuevo registro</h2>
+        <p><strong>Empresa:</strong> {nombre_empresa}</p>
+        <p><strong>Dirección:</strong> {direccion}</p>
+        <p><strong>Usuario:</strong> {nombre}</p>
+        <p><strong>Email:</strong> {email}</p>
+        """
+        enviar_email("techinclusiondigital@gmail.com", "📬 Nuevo registro en Petshappy", admin_msg)
+
+        # ✅ Enviar correo de bienvenida al usuario
+        user_msg = f"""
+        <h2>🎉 Bienvenido a Petshappy</h2>
+        <p>Hola {nombre}, gracias por registrarte.</p>
+        <p>Tu empresa <strong>{nombre_empresa}</strong> ya puede comenzar a usar el sistema de gestión de peluquería canina.</p>
+        <p>Recuerda que tienes 1 mes de prueba gratuito.</p>
+        <br>
+        <p>Si tienes dudas, contáctanos: techinclusiondigital@gmail.com</p>
+        """
+        enviar_email(email, "🎉 Bienvenido a Petshappy", user_msg)
+
+        login_user(nuevo)
+        return redirect("/dashboard")
+
     return render_template("registro.html")
+
+
 
 from flask import flash
 
@@ -669,7 +769,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
-                     "precio": cita.precio
+                     "precio": cita.precio,
+                      "mascota": cita.mascota
                 })
                 hora_actual = fin_cita
                 bloque_ocupado = True
