@@ -310,8 +310,8 @@ import smtplib
 from email.mime.text import MIMEText
 
 def enviar_email(destinatario, asunto, contenido_html):
-    remitente = "tucorreo@gmail.com"
-    password = "tu_contraseña_app"  # usa una contraseña de aplicación
+    remitente = "techinclusiondigital@gmail.com"
+    password = "mbgo lqoh fjha xbdu"  # usa una contraseña de aplicación
 
     msg = MIMEText(contenido_html, "html")
     msg["Subject"] = asunto
