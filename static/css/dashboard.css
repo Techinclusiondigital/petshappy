@@ -85,6 +85,12 @@ color: #002b21
     margin: auto;
     text-align: center;
 }
+.paypal.Buttons {
+   margin: auto; 
+   text-align: center;
+   align-items: center;
+}
+
 
 h2 {
     color: #444;
