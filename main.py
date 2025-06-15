@@ -736,7 +736,6 @@ from flask_login import login_required, current_user
 
 @app.route("/logout")
 @login_required
-@requiere_suscripcion
 def logout():
     logout_user()
     return redirect("/")
