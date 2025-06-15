@@ -89,15 +89,14 @@
     <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Petshappy">
     <h1>Crear cuenta</h1>
  <form method="POST">
-    <input type="text" name="nombre_empresa" placeholder="Nombre de la empresa" required>
-    <input type="text" name="cif" placeholder="CIF" required>
-    <input type="text" name="telefono" placeholder="Teléfono" required>
-    <input type="text" name="direccion" placeholder="Dirección" required>
-    <input type="text" name="codigo_postal" placeholder="Código Postal" required>
-    
-    <input type="text" name="nombre_usuario" placeholder="Nombre de usuario" required>
-    <input type="email" name="email" placeholder="Correo electrónico" required>
-    <input type="password" name="password" placeholder="Contraseña" required>
+        <label>Nombre de usuario:</label>
+        <input type="text" name="nombre_usuario" required>
+
+        <label>Email:</label>
+        <input type="email" name="email" required>
+
+        <label>Contraseña:</label>
+        <input type="password" name="password" required>
 
     <button type="submit">Registrarse</button>
 </form>

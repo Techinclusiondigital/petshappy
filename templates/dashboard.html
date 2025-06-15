@@ -75,6 +75,7 @@
 
 {% endblock %}
 
+
 {% block scripts %}
   {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
     <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
