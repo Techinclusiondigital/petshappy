@@ -7,7 +7,8 @@
     <div class="alert alert-danger text-center">
       <h2>🚫 Tu prueba gratuita ha caducado</h2>
       <p>Activa tu suscripción para seguir usando la aplicación</p>  
-      <div id="paypal-button-container"></div>
+     <div id="paypal-button-container" class="paypal-center"></div>
+
     </div>
   {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
     <div class="alert alert-info text-center">
@@ -84,6 +85,7 @@
           color: 'gold',
           layout: 'vertical',
           label: 'subscribe'
+          
         },
         createSubscription: function(data, actions) {
           return actions.subscription.create({

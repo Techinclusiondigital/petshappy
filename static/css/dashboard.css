@@ -92,6 +92,14 @@ color: #002b21
 }
 
 
+  .paypal-center {
+    display: flex;
+    justify-content: center;
+    margin-top: 1em;
+  }
+
+
+
 h2 {
     color: #444;
     margin-top: 40px;
