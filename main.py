@@ -75,14 +75,14 @@ class Usuario(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
     def en_periodo_prueba(self):
-        return False
-        #ahora = datetime.now(timezone.utc)
-       # if self.fecha_alta.tzinfo is None:
-            #fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
-        #else:
-            #fecha_alta_aware = self.fecha_alta
+        #return False
+        ahora = datetime.now(timezone.utc)
+        if self.fecha_alta.tzinfo is None:
+            fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
+        else:
+            fecha_alta_aware = self.fecha_alta
 
-        #return ahora <= fecha_alta_aware + timedelta(days=30)
+        return ahora <= fecha_alta_aware + timedelta(days=30)
 
 import smtplib
 from email.mime.text import MIMEText
