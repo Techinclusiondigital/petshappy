@@ -218,6 +218,7 @@ def registrar():
                     tamano=nueva_mascota.tamano,
                     duracion=duracion,
                     notas=request.args.get("notas", ""),
+                    tipo_servicio=request.args.get("tipo_servicio", ""),  # por ejemplo: "baño y corte"
                     metodo_pago=request.args.get("metodo_pago", ""),
                     precio=float(request.args.get("precio", 0)),
                     user_id=current_user.id
@@ -367,7 +368,6 @@ def agendar_cita():
             Mascota.user_id == current_user.id
         ).first()
 
-        # Si no existe la mascota, redirige al registro con datos precargados
         if not mascota:
             return redirect(
                 f"/registrar?nombre={nombre_input}"
@@ -385,35 +385,20 @@ def agendar_cita():
         notas = request.form["notas"]
         metodo_pago = request.form.get("metodo_pago")
         precio = request.form.get("precio")
-        nombre = request.args.get("nombre", "")
-        telefono = request.args.get("telefono", "")
-        raza = request.args.get("raza", "")
 
         try:
             precio = float(precio.replace(",", ".")) if precio else 0.0
         except ValueError:
             precio = 0.0
 
-        # Duración según tamaño
-        if tamano == "pequeno":
-            duracion = 60
-        elif tamano == "mediano":
-            duracion = 75
-        elif tamano == "grande":
-            duracion = 90
-        else:
-            duracion = 60  # Valor por defecto
+        # ✅ NUEVO: Duración establecida por el usuario
+        duracion = int(request.form.get("duracion", 60))
 
         hora_inicio = datetime.combine(fecha, hora)
         hora_fin = hora_inicio + timedelta(minutes=duracion)
 
-        # Verificar solapamientos
-        citas = Cita.query.filter_by(fecha=fecha).all()
-        for c in citas:
-            c_inicio = datetime.combine(c.fecha, c.hora)
-            c_fin = c_inicio + timedelta(minutes=c.duracion)
-            if hora_inicio < c_fin and hora_fin > c_inicio:
-                return "❌ Ya hay una cita en ese horario."
+       
+
 
         # Crear y guardar cita
         nueva_cita = Cita(
@@ -421,8 +406,9 @@ def agendar_cita():
             fecha=fecha,
             hora=hora,
             tamano=tamano,
-            duracion=duracion,
+            duracion = int(request.form.get("duracion", 60)),
             notas=notas,
+            tipo_servicio=request.args.get("tipo_servicio", ""), 
             metodo_pago=metodo_pago,
             precio=precio,
             user_id=current_user.id
