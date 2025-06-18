@@ -742,19 +742,20 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=3
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
 
+    citas_dia = [c for (f, h), citas in citas_por_fecha_hora.items() if f == dia for c in citas]
+    ocupados = []
+
+    for cita in citas_dia:
+        inicio = datetime.combine(dia, cita.hora)
+        fin_cita = inicio + timedelta(minutes=cita.duracion)
+        ocupados.append((inicio, fin_cita, cita))
+
     while hora_actual < fin:
-        key = (dia, hora_actual.time())
-        citas_en_hora = citas_por_fecha_hora.get(key, [])
+        bloque_ocupado = False
 
-        if citas_en_hora:
-            for cita in citas_en_hora:
-                if cita.metodo_pago == "efectivo":
-                    icono_pago = "💵"
-                elif cita.metodo_pago == "tarjeta":
-                    icono_pago = "💳"
-                else:
-                    icono_pago = "❓"
-
+        for inicio, fin_cita, cita in ocupados:
+            if inicio == hora_actual:
+                icono_pago = "💵" if cita.metodo_pago == "efectivo" else "💳" if cita.metodo_pago == "tarjeta" else "❓"
                 bloques.append({
                     "hora": hora_actual.strftime("%H:%M"),
                     "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
@@ -764,21 +765,22 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=3
                     "precio": cita.precio,
                     "mascota": cita.mascota
                 })
-        else:
-            # Si no hay ninguna cita en esa hora, la franja está libre
+                hora_actual = fin_cita
+                bloque_ocupado = True
+                break
+
+        if not bloque_ocupado:
             bloques.append({
                 "hora": hora_actual.strftime("%H:%M"),
                 "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
                 "enlace": f"/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}",
                 "cita_id": None,
-                "metodo_pago": None,
-                "precio": None,
-                "mascota": None
+                "metodo_pago": None
             })
-
-        hora_actual += timedelta(minutes=paso_min)
+            hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 from datetime import datetime, timedelta, timezone
