@@ -126,14 +126,19 @@ class Mascota(db.Model):
 
 class Cita(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    mascota_id = db.Column(db.Integer, db.ForeignKey('mascota.id'))
-    fecha = db.Column(db.Date)
-    hora = db.Column(db.Time)
-    tamano = db.Column(db.String(10))
-    duracion = db.Column(db.Integer)
-    notas = db.Column(db.Text)
-    precio = db.Column(db.Float)  # Precio cobrado esa vez
-    metodo_pago = db.Column(db.String(20), nullable=True)  # "efectivo", "tarjeta", etc.
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    duracion = db.Column(db.Integer, default=60)  # en minutos
+    tipo_servicio = db.Column(db.String(50))  # baño, corte, etc.
+    precio = db.Column(db.Float)
+    metodo_pago = db.Column(db.String(20))
+    
+    mascota_id = db.Column(db.Integer, db.ForeignKey("mascota.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+    
+    mascota = db.relationship("Mascota", backref="citas")
+
+
 
     # ✅ relaciones
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
@@ -473,6 +478,12 @@ def dia_semana_espanol(fecha):
 def redirigir_agenda():
     return redirect("/dashboard")
 
+@app.route("/mascota/<int:id>")
+@login_required
+def ver_mascota(id):
+    mascota = Mascota.query.get_or_404(id)
+    return render_template("ficha_mascota.html", mascota=mascota)
+
 
 
 @app.route("/anular_cita/<int:cita_id>", methods=["POST"])
@@ -740,23 +751,17 @@ def logout():
     logout_user()
     return redirect("/")
 
-def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
+def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=30):
     bloques = []
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
-    citas_dia = citas_por_fecha.get(dia, [])
-    ocupados = []
-
-    for cita in citas_dia:
-        inicio = datetime.combine(dia, cita.hora)
-        fin_cita = inicio + timedelta(minutes=cita.duracion)
-        ocupados.append((inicio, fin_cita, cita))
 
     while hora_actual < fin:
-        bloque_ocupado = False
+        key = (dia, hora_actual.time())
+        citas_en_hora = citas_por_fecha_hora.get(key, [])
 
-        for inicio, fin_cita, cita in ocupados:
-            if inicio == hora_actual:
+        if citas_en_hora:
+            for cita in citas_en_hora:
                 if cita.metodo_pago == "efectivo":
                     icono_pago = "💵"
                 elif cita.metodo_pago == "tarjeta":
@@ -770,24 +775,25 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
-                     "precio": cita.precio,
-                      "mascota": cita.mascota
+                    "precio": cita.precio,
+                    "mascota": cita.mascota
                 })
-                hora_actual = fin_cita
-                bloque_ocupado = True
-                break
-
-        if not bloque_ocupado:
+        else:
+            # Si no hay ninguna cita en esa hora, la franja está libre
             bloques.append({
                 "hora": hora_actual.strftime("%H:%M"),
                 "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
                 "enlace": f"/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}",
                 "cita_id": None,
-                "metodo_pago": None
+                "metodo_pago": None,
+                "precio": None,
+                "mascota": None
             })
-            hora_actual += timedelta(minutes=paso_min)
+
+        hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 from datetime import datetime, timedelta, timezone
 
@@ -817,11 +823,13 @@ def dashboard():
         if (hoy + timedelta(days=i)).weekday() != 6
     ]
 
+    # Obtener citas
     citas = Cita.query.filter_by(user_id=current_user.id).order_by(Cita.fecha, Cita.hora).all()
+    citas_por_fecha_hora = defaultdict(list)
 
-    citas_por_fecha = defaultdict(list)
     for cita in citas:
-        citas_por_fecha[cita.fecha].append(cita)
+        key = (cita.fecha, cita.hora)
+        citas_por_fecha_hora[key].append(cita)
 
     agenda_completa = []
     for dia in dias_agenda:
@@ -830,26 +838,26 @@ def dashboard():
                 dia,
                 datetime.strptime("10:00", "%H:%M").time(),
                 datetime.strptime("12:00", "%H:%M").time(),
-                citas_por_fecha
+                citas_por_fecha_hora
             )
         else:
             bloques_manana = generar_bloques(
                 dia,
                 datetime.strptime("10:00", "%H:%M").time(),
                 datetime.strptime("14:00", "%H:%M").time(),
-                citas_por_fecha
+                citas_por_fecha_hora
             )
             bloques_tarde = generar_bloques(
                 dia,
                 datetime.strptime("17:00", "%H:%M").time(),
                 datetime.strptime("20:30", "%H:%M").time(),
-                citas_por_fecha
+                citas_por_fecha_hora
             )
             bloques_dia = bloques_manana + bloques_tarde
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
 
-    # 📆 Calcular fin de prueba con zona horaria UTC
+    # 📆 Calcular fin de prueba en UTC
     fecha_alta = current_user.fecha_alta
     if fecha_alta.tzinfo is None:
         fecha_alta = fecha_alta.replace(tzinfo=timezone.utc)
@@ -861,6 +869,7 @@ def dashboard():
         agenda=agenda_completa,
         fecha_fin_prueba=fecha_fin_prueba.isoformat()
     )
+
 
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])

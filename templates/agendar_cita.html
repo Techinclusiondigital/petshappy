@@ -16,7 +16,6 @@
 
         <label for="raza">Raza:</label><br>
         <input type="text" id="raza" name="raza"><br><br>
-
         <label for="tamano">Tamaño:</label><br>
         <select name="tamano" id="tamano">
             <option value="">Seleccionar...</option>
@@ -24,6 +23,22 @@
             <option value="mediano">Mediano</option>
             <option value="grande">Grande</option>
         </select><br><br>
+        <label for="tipo_servicio">Tipo de servicio:</label>
+        <select name="tipo_servicio" required>
+            <option value="baño">🛁 Baño</option>
+            <option value="baño y corte">✂️ Baño y corte</option>
+            <option value="baño y repaso">🧼 Baño y repaso</option>
+        </select>
+
+        <label for="duracion">Duración:</label>
+        <select name="duracion" required>
+          <option value="45">45 minutos</option>
+          <option value="60">1 hora</option>
+          <option value="90">1 hora y media</option>
+          <option value="120">2 horas</option>
+        </select>
+
+        
 
         <label for="fecha">Fecha:</label><br>
         <input type="date" id="fecha" name="fecha" value="{{ fecha }}" required><br><br>

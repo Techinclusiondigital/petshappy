@@ -39,6 +39,13 @@
             {% else %}
               <strong class="text-danger">{{ bloque.texto }}</strong>
               {% if bloque.cita_id %}
+               <div>
+      <a href="/mascota/{{ bloque.mascota.id }}">
+        📖 Ver ficha de {{ bloque.mascota.nombre }}
+      </a>
+    </div>
+  {% endif %}
+  {% if bloque.cita_id %}
                 <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
                   <select name="metodo_pago" class="form-select form-select-sm">
                     <option value="">Método</option>
@@ -58,7 +65,7 @@
   <a class="btn btn-success btn-sm"
      target="_blank"
      href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
-     📲 Recordar por WhatsApp
+     📲 Enviar recordatorio
   </a>
 {% endif %}
 
