@@ -405,7 +405,6 @@ def agendar_cita():
             mascota_id=mascota.id,
             fecha=fecha,
             hora=hora,
-            tamano=tamano,
             duracion = int(request.form.get("duracion", 60)),
             notas=notas,
             tipo_servicio=request.args.get("tipo_servicio", ""), 
