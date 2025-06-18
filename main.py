@@ -737,12 +737,11 @@ def logout():
     logout_user()
     return redirect("/")
 
-def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=30):
+def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     bloques = []
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
-
-    citas_dia = [c for (f, h), citas in citas_por_fecha_hora.items() if f == dia for c in citas]
+    citas_dia = citas_por_fecha.get(dia, [])
     ocupados = []
 
     for cita in citas_dia:
@@ -755,7 +754,11 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=3
 
         for inicio, fin_cita, cita in ocupados:
             if inicio == hora_actual:
-                icono_pago = "💵" if cita.metodo_pago == "efectivo" else "💳" if cita.metodo_pago == "tarjeta" else "❓"
+                icono_pago = {
+                    "efectivo": "💵",
+                    "tarjeta": "💳"
+                }.get(cita.metodo_pago, "❓")
+
                 bloques.append({
                     "hora": hora_actual.strftime("%H:%M"),
                     "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
@@ -765,9 +768,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=3
                     "precio": cita.precio,
                     "mascota": cita.mascota
                 })
-                hora_actual = fin_cita
                 bloque_ocupado = True
-                break
+                break  # Sale del for de ocupados
 
         if not bloque_ocupado:
             bloques.append({
@@ -777,9 +779,11 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha_hora, paso_min=3
                 "cita_id": None,
                 "metodo_pago": None
             })
-            hora_actual += timedelta(minutes=paso_min)
+
+        hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 
