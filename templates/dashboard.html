@@ -34,7 +34,7 @@
       <ul class="list-group mb-3">
         {% for bloque in bloques %}
           <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
-   {% if bloque.enlace %}
+  {% if bloque.enlace %}
   <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
 {% else %}
   <strong class="text-danger">
@@ -42,7 +42,7 @@
     <a href="/mascota/{{ bloque.mascota.id }}">
       {{ bloque.mascota.nombre }}
     </a>
-    - {{ bloque.tipo_servicio }}
+    - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
   </strong>
 
   {% if bloque.cita_id %}
@@ -55,6 +55,7 @@
       <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
       <button type="submit" class="btn btn-sm btn-success">💾</button>
     </form>
+
     <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
       <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
     </form>
@@ -68,11 +69,12 @@
     </a>
 
     <!-- Botón para agendar otra cita a la misma hora -->
-    <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
+    {% if fecha %}
+      <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
+    {% endif %}
   {% endif %}
 {% endif %}
-         
-            {% endif %}
+
           </li>
         {% endfor %}
       </ul>
