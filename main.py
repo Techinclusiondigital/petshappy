@@ -744,20 +744,20 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
     citas_dia = citas_por_fecha.get(dia, [])
+
     ocupados = []
-    
-
-
     for cita in citas_dia:
         inicio = datetime.combine(dia, cita.hora)
         fin_cita = inicio + timedelta(minutes=cita.duracion)
         ocupados.append((inicio, fin_cita, cita))
 
     while hora_actual < fin:
-        bloque_ocupado = False
+        citas_en_esta_hora = [
+            cita for inicio, _, cita in ocupados if inicio == hora_actual
+        ]
 
-        for inicio, fin_cita, cita in ocupados:
-            if inicio == hora_actual:
+        if citas_en_esta_hora:
+            for cita in citas_en_esta_hora:
                 icono_pago = {
                     "efectivo": "💵",
                     "tarjeta": "💳"
@@ -765,8 +765,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
                 bloques.append({
                     "hora": hora_actual.strftime("%H:%M"),
-                    "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tipo_servicio}) {icono_pago}",
-
+                    "texto": f"{hora_actual.strftime('%H:%M')} {cita.mascota.nombre} {cita.tipo_servicio or ''} {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
@@ -774,10 +773,14 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "mascota": cita.mascota,
                     "tipo_servicio": cita.tipo_servicio
                 })
-                bloque_ocupado = True
-                break  # Sale del for de ocupados
 
-        if not bloque_ocupado:
+        # Evitar mostrar bloques libres dentro del rango de una cita
+        esta_dentro_de_una_cita = any(
+            inicio < hora_actual < fin_cita
+            for inicio, fin_cita, _ in ocupados
+        )
+
+        if not citas_en_esta_hora and not esta_dentro_de_una_cita:
             bloques.append({
                 "hora": hora_actual.strftime("%H:%M"),
                 "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
@@ -789,6 +792,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 
