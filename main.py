@@ -135,7 +135,7 @@ class Cita(db.Model):
     notas = db.Column(db.Text)
     mascota_id = db.Column(db.Integer, db.ForeignKey("mascota.id"))
     user_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
-    
+    tamano = db.Column(db.String(20))
     mascota = db.relationship("Mascota", backref="citas")
 
 
