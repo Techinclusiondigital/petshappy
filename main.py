@@ -132,7 +132,7 @@ class Cita(db.Model):
     tipo_servicio = db.Column(db.String(50))  # baño, corte, etc.
     precio = db.Column(db.Float)
     metodo_pago = db.Column(db.String(20))
-    
+    notas = db.Column(db.Text)
     mascota_id = db.Column(db.Integer, db.ForeignKey("mascota.id"))
     user_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
     
