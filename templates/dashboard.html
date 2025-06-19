@@ -34,52 +34,44 @@
       <ul class="list-group mb-3">
         {% for bloque in bloques %}
           <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
-            {% if bloque.enlace %}
-              <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
-            {% else %}
-     <strong class="text-danger">
-  {{ bloque.hora }} 
-  <a href="/mascota/{{ bloque.mascota.id }}">
-    {{ bloque.mascota.nombre }}
-  </a>
-  {{ bloque.tipo_servicio }}
-</strong>
-
-      
-  {{ bloque.texto }}
-</a>
+   {% if bloque.enlace %}
+  <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
+{% else %}
+  <strong class="text-danger">
+    {{ bloque.hora }} 
+    <a href="/mascota/{{ bloque.mascota.id }}">
+      {{ bloque.mascota.nombre }}
+    </a>
+    - {{ bloque.tipo_servicio }}
+  </strong>
 
   {% if bloque.cita_id %}
-                <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
-                  <select name="metodo_pago" class="form-select form-select-sm">
-                    <option value="">Método</option>
-                    <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
-                    <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
-                  </select>
-                  <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
-                  <button type="submit" class="btn btn-sm btn-success">💾</button>
-                </form>
-                <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
-                  <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
-                </form>
-                {% if bloque.cita_id %}
-  <div class="mt-2">
-  <a href="/cita?fecha={{ fecha.strftime('%Y-%m-%d') }}&hora={{ bloque.hora }}" class="btn btn-sm btn-secondary">
-    ➕ Añadir otra cita a esta hora
-  </a>
-</div>
-              
-  {% set mascota = bloque.mascota %}
-  {% set telefono = mascota.telefono.replace(" ", "").replace("-", "") %}
-  {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ mascota.nombre ~ " a las " ~ bloque.hora %}
-  <a class="btn btn-success btn-sm"
-     target="_blank"
-     href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
-     📲 Enviar recordatorio
-  </a>
-{% endif %}
+    <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
+      <select name="metodo_pago" class="form-select form-select-sm">
+        <option value="">Método</option>
+        <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+        <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+      </select>
+      <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
+      <button type="submit" class="btn btn-sm btn-success">💾</button>
+    </form>
+    <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
+      <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
+    </form>
 
-              {% endif %}
+    {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
+    {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
+    <a class="btn btn-success btn-sm mt-1"
+       target="_blank"
+       href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
+       📲 Enviar recordatorio
+    </a>
+
+    <!-- Botón para agendar otra cita a la misma hora -->
+    <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
+  {% endif %}
+{% endif %}
+         
             {% endif %}
           </li>
         {% endfor %}
