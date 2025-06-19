@@ -761,7 +761,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                 icono_pago = {
                     "efectivo": "💵",
                     "tarjeta": "💳"
-                }.get(cita.metodo_pago, "❓")
+                }.get(cita.metodo_pago, "")
 
                 bloques.append({
                     "hora": hora_actual.strftime("%H:%M"),

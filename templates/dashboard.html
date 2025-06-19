@@ -37,10 +37,14 @@
             {% if bloque.enlace %}
               <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
             {% else %}
-      <strong class="text-danger">
-  <a href="/mascota/{{ bloque.mascota.id }}">{{ bloque.mascota.nombre }}</a>
-  {% if bloque.tipo_servicio %} - {{ bloque.tipo_servicio }}{% endif %}
+     <strong class="text-danger">
+  {{ bloque.hora }} 
+  <a href="/mascota/{{ bloque.mascota.id }}">
+    {{ bloque.mascota.nombre }}
+  </a>
+  {{ bloque.tipo_servicio }}
 </strong>
+
       
   {{ bloque.texto }}
 </a>
@@ -59,6 +63,12 @@
                   <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
                 </form>
                 {% if bloque.cita_id %}
+  <div class="mt-2">
+  <a href="/cita?fecha={{ fecha.strftime('%Y-%m-%d') }}&hora={{ bloque.hora }}" class="btn btn-sm btn-secondary">
+    ➕ Añadir otra cita a esta hora
+  </a>
+</div>
+              
   {% set mascota = bloque.mascota %}
   {% set telefono = mascota.telefono.replace(" ", "").replace("-", "") %}
   {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ mascota.nombre ~ " a las " ~ bloque.hora %}
