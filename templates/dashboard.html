@@ -37,7 +37,10 @@
             {% if bloque.enlace %}
               <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
             {% else %}
-              <strong class="text-danger">{{ bloque.texto }}</strong>
+            <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold" style="text-decoration: none;">
+  {{ bloque.texto }}
+</a>
+
               {% if bloque.cita_id %}
                <div>
       <a href="/mascota/{{ bloque.mascota.id }}">

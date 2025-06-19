@@ -742,6 +742,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     fin = datetime.combine(dia, hora_fin)
     citas_dia = citas_por_fecha.get(dia, [])
     ocupados = []
+    
+
 
     for cita in citas_dia:
         inicio = datetime.combine(dia, cita.hora)
@@ -760,7 +762,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
                 bloques.append({
                     "hora": hora_actual.strftime("%H:%M"),
-                    "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tamano}) {icono_pago}",
+                    "texto": f"{hora_actual.strftime('%H:%M')} - OCUPADO: {cita.mascota.nombre} ({cita.tipo_servicio}) {icono_pago}",
+
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
