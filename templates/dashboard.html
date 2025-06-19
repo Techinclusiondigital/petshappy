@@ -37,17 +37,14 @@
             {% if bloque.enlace %}
               <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
             {% else %}
-            <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold" style="text-decoration: none;">
+      <strong class="text-danger">
+  <a href="/mascota/{{ bloque.mascota.id }}">{{ bloque.mascota.nombre }}</a>
+  {% if bloque.tipo_servicio %} - {{ bloque.tipo_servicio }}{% endif %}
+</strong>
+      
   {{ bloque.texto }}
 </a>
 
-              {% if bloque.cita_id %}
-               <div>
-      <a href="/mascota/{{ bloque.mascota.id }}">
-        📖 Ver ficha de {{ bloque.mascota.nombre }}
-      </a>
-    </div>
-  {% endif %}
   {% if bloque.cita_id %}
                 <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
                   <select name="metodo_pago" class="form-select form-select-sm">

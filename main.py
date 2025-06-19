@@ -209,7 +209,8 @@ def registrar():
             try:
                 fecha_dt = datetime.strptime(fecha_cita, "%Y-%m-%d").date()
                 hora_dt = datetime.strptime(hora_cita, "%H:%M").time()
-                duracion = 60 if nueva_mascota.tamano == "pequeno" else 75 if nueva_mascota.tamano == "mediano" else 90
+                duracion = int(request.form.get("duracion", 60))  # Valor por defecto: 60 minutos
+
 
                 nueva_cita = Cita(
                     mascota_id=nueva_mascota.id,
@@ -385,6 +386,7 @@ def agendar_cita():
         notas = request.form["notas"]
         metodo_pago = request.form.get("metodo_pago")
         precio = request.form.get("precio")
+        tipo_servicio = request.form.get("tipo_servicio")
 
         try:
             precio = float(precio.replace(",", ".")) if precio else 0.0
@@ -407,7 +409,8 @@ def agendar_cita():
             hora=hora,
             duracion = int(request.form.get("duracion", 60)),
             notas=notas,
-            tipo_servicio=request.args.get("tipo_servicio", ""), 
+            tipo_servicio=tipo_servicio,
+
             metodo_pago=metodo_pago,
             precio=precio,
             user_id=current_user.id
@@ -768,7 +771,8 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
                     "precio": cita.precio,
-                    "mascota": cita.mascota
+                    "mascota": cita.mascota,
+                    "tipo_servicio": cita.tipo_servicio
                 })
                 bloque_ocupado = True
                 break  # Sale del for de ocupados
