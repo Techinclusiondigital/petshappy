@@ -30,49 +30,53 @@
     </form>
 
     {% for fecha, nombre_dia, bloques in agenda %}
-      <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
-      <ul class="list-group mb-3">
-       {% if bloque.enlace %}
-  <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
-{% else %}
-  <strong>{{ bloque.hora }}</strong>
-  {% if bloque.mascota %}
-    <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
-      {{ bloque.mascota.nombre }}
-    </a> - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
-  {% endif %}
+  <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
+  <ul class="list-group mb-3">
+    {% for bloque in bloques %}
+      <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
+        {% if bloque.enlace %}
+          <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
+        {% else %}
+          <strong>{{ bloque.hora }}</strong>
+          {% if bloque.mascota %}
+            <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
+              {{ bloque.mascota.nombre }}
+            </a>
+            - {{ bloque.tipo_servicio or "Sin servicio" }}
+          {% endif %}
 
-  {% if bloque.cita_id %}
-    <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
-      <select name="metodo_pago" class="form-select form-select-sm">
-        <option value="">Método</option>
-        <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
-        <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
-      </select>
-      <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
-      <button type="submit" class="btn btn-sm btn-success">💾</button>
-    </form>
+          {% if bloque.cita_id %}
+            <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
+              <select name="metodo_pago" class="form-select form-select-sm">
+                <option value="">Método</option>
+                <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+                <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+              </select>
+              <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
+              <button type="submit" class="btn btn-sm btn-success">💾</button>
+            </form>
 
-    <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
-      <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
-    </form>
+            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
+              <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
+            </form>
 
-    {% if bloque.mascota and bloque.mascota.telefono %}
-      {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
-      {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
-      <a class="btn btn-success btn-sm mt-1"
-         target="_blank"
-         href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
-         📲 Enviar recordatorio
-      </a>
-    {% endif %}
+            {% if bloque.mascota and bloque.mascota.telefono %}
+              {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
+              {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
+              <a class="btn btn-success btn-sm mt-1" target="_blank"
+                 href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
+                📲 Enviar recordatorio
+              </a>
+            {% endif %}
 
-    <!-- ➕ Agendar otra cita -->
-    {% if fecha %}
-      <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
-    {% endif %}
-  {% endif %}
-{% endif %}
+            <!-- ➕ Agendar otra cita -->
+            <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
+          {% endif %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endfor %}
 
 
   <h3>📋 Arqueo del día</h3>
