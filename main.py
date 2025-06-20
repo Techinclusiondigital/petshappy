@@ -774,7 +774,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "tipo_servicio": cita.tipo_servicio
                 })
 
-            # ✅ Agregar "+" debajo para agendar más en la misma hora
+            # Botón para agendar otra cita en la misma hora
             bloques.append({
                 "hora": hora_actual.strftime("%H:%M"),
                 "texto": f"<a href='/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}' class='btn btn-sm btn-primary'>➕ Agendar otra</a>",
@@ -784,7 +784,6 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
             })
 
         else:
-            # Bloque libre
             bloques.append({
                 "hora": hora_actual.strftime("%H:%M"),
                 "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
@@ -796,6 +795,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 

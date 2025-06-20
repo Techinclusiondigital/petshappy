@@ -32,16 +32,15 @@
     {% for fecha, nombre_dia, bloques in agenda %}
       <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
       <ul class="list-group mb-3">
-        {% for bloque in bloques %}
-          <li class="bloque-horario {% if bloque.enlace %}libre{% else %}ocupado{% endif %}">
-  {% if bloque.enlace %}
+       {% if bloque.enlace %}
   <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
 {% else %}
-  <strong>{{ bloque.hora }}</strong> 
-      <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
-        {{ bloque.mascota.nombre }}
-      </a> - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
-    
+  <strong>{{ bloque.hora }}</strong>
+  {% if bloque.mascota %}
+    <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
+      {{ bloque.mascota.nombre }}
+    </a> - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
+  {% endif %}
 
   {% if bloque.cita_id %}
     <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
@@ -58,26 +57,23 @@
       <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
     </form>
 
-    {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
-    {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
-    <a class="btn btn-success btn-sm mt-1"
-       target="_blank"
-       href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
-       📲 Enviar recordatorio
-    </a>
+    {% if bloque.mascota and bloque.mascota.telefono %}
+      {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
+      {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
+      <a class="btn btn-success btn-sm mt-1"
+         target="_blank"
+         href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
+         📲 Enviar recordatorio
+      </a>
+    {% endif %}
 
-    <!-- Botón para agendar otra cita a la misma hora -->
+    <!-- ➕ Agendar otra cita -->
     {% if fecha %}
       <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
     {% endif %}
   {% endif %}
 {% endif %}
 
-          </li>
-        {% endfor %}
-      </ul>
-    {% endfor %}
-  </div>
 
   <h3>📋 Arqueo del día</h3>
   <form method="GET" action="/arqueo">
