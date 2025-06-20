@@ -746,26 +746,31 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
     citas_dia = citas_por_fecha.get(dia, [])
-    
     ocupados = []
+
     for cita in citas_dia:
         inicio = datetime.combine(dia, cita.hora)
         fin_cita = inicio + timedelta(minutes=cita.duracion)
         ocupados.append((inicio, fin_cita, cita))
 
     while hora_actual < fin:
-        bloques_hora = [c for i, f, c in ocupados if i == hora_actual]
-        
-        if bloques_hora:
-            for cita in bloques_hora:
+        hora_formateada = hora_actual.strftime("%H:%M")
+        coincidencias = [
+            (inicio, fin_cita, cita)
+            for inicio, fin_cita, cita in ocupados
+            if inicio == hora_actual
+        ]
+
+        if coincidencias:
+            for inicio, fin_cita, cita in coincidencias:
                 icono_pago = {
                     "efectivo": "💵",
                     "tarjeta": "💳"
                 }.get(cita.metodo_pago, "")
 
                 bloques.append({
-                    "hora": hora_actual.strftime("%H:%M"),
-                    "texto": f"{hora_actual.strftime('%H:%M')} <a href='/mascota/{cita.mascota.id}'><strong>{cita.mascota.nombre}</strong></a> - {cita.tipo_servicio} {icono_pago}",
+                    "hora": hora_formateada,
+                    "texto": f"{hora_formateada} <a href='/mascota/{cita.mascota.id}'>{cita.mascota.nombre}</a> - {cita.tipo_servicio} {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
@@ -774,20 +779,21 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "tipo_servicio": cita.tipo_servicio
                 })
 
-            # Botón para agendar otra cita en la misma hora
+            # ➕ Agregar un "+" para más citas a la misma hora
             bloques.append({
-                "hora": hora_actual.strftime("%H:%M"),
-                "texto": f"<a href='/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}' class='btn btn-sm btn-primary'>➕ Agendar otra</a>",
-                "enlace": None,
+                "hora": hora_formateada,
+                "texto": f"<a href='/cita?fecha={dia}&hora={hora_formateada}' class='btn btn-sm btn-secondary'>➕ Agendar otra</a>",
+                "enlace": f"/cita?fecha={dia}&hora={hora_formateada}",
                 "cita_id": None,
                 "metodo_pago": None
             })
 
         else:
+            # Solo si no hay cita en ese horario
             bloques.append({
-                "hora": hora_actual.strftime("%H:%M"),
-                "texto": f"{hora_actual.strftime('%H:%M')} - Libre",
-                "enlace": f"/cita?fecha={dia}&hora={hora_actual.strftime('%H:%M')}",
+                "hora": hora_formateada,
+                "texto": f"{hora_formateada} - Libre",
+                "enlace": f"/cita?fecha={dia}&hora={hora_formateada}",
                 "cita_id": None,
                 "metodo_pago": None
             })
@@ -795,6 +801,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 
