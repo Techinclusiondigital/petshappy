@@ -779,6 +779,14 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "tipo_servicio": cita.tipo_servicio
                 })
 
+            # ➕ Agregar un "+" para más citas a la misma hora
+            bloques.append({
+                "hora": hora_formateada,
+                "texto": f"/cita?fecha={dia}&hora={hora_formateada}" ,
+                "enlace": f"/cita?fecha={dia}&hora={hora_formateada}",
+                "cita_id": None,
+                "metodo_pago": None
+            })
 
         else:
             # Solo si no hay cita en ese horario
