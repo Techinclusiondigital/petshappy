@@ -219,7 +219,6 @@ def registrar():
                     tamano=nueva_mascota.tamano,
                     duracion=duracion,
                     notas=request.args.get("notas", ""),
-                    tipo_servicio=request.args.get("tipo_servicio", ""),  # por ejemplo: "baño y corte"
                     metodo_pago=request.args.get("metodo_pago", ""),
                     precio=float(request.args.get("precio", 0)),
                     user_id=current_user.id
