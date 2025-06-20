@@ -37,13 +37,11 @@
   {% if bloque.enlace %}
   <a href="{{ bloque.enlace }}" class="bloque-libre">{{ bloque.texto }}</a>
 {% else %}
-  <strong class="text-danger">
-    {{ bloque.hora }} 
-    <a href="/mascota/{{ bloque.mascota.id }}">
-      {{ bloque.mascota.nombre }}
-    </a>
-    - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
-  </strong>
+  <strong>{{ bloque.hora }}</strong> 
+      <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
+        {{ bloque.mascota.nombre }}
+      </a> - {{ bloque.tipo_servicio or 'Sin servicio especificado' }}
+    
 
   {% if bloque.cita_id %}
     <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
