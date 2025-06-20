@@ -770,7 +770,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
                 bloques.append({
                     "hora": hora_formateada,
-                     "texto": f"{hora_actual.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
+                    "texto": f"{hora_actual.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
@@ -779,14 +779,6 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "tipo_servicio": cita.tipo_servicio
                 })
 
-            # ➕ Agregar un "+" para más citas a la misma hora
-            bloques.append({
-                "hora": hora_formateada,
-                "texto": f"<a href='/cita?fecha={dia}&hora={hora_formateada}' class='btn btn-sm btn-secondary'>➕ Agendar otra</a>",
-                "enlace": f"/cita?fecha={dia}&hora={hora_formateada}",
-                "cita_id": None,
-                "metodo_pago": None
-            })
 
         else:
             # Solo si no hay cita en ese horario

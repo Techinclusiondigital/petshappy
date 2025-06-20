@@ -29,26 +29,21 @@
       <button class="btn-agenda">Ver agenda</button>
     </form>
 
- {% for fecha, nombre_dia, bloques in agenda %}
+   {% for fecha, nombre_dia, bloques in agenda %}
   <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
   <ul class="list-group mb-3">
     {% for bloque in bloques %}
       <li class="bloque-horario {% if not bloque.mascota %}libre{% else %}ocupado{% endif %}">
-        
         {% if not bloque.mascota %}
-          <!-- Bloque libre -->
           <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="bloque-libre">{{ bloque.texto }}</a>
-
         {% else %}
-          <!-- Bloque ocupado -->
           <strong>{{ bloque.hora }}</strong>
           <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
             {{ bloque.mascota.nombre }}
           </a>
-          - <span class="text-danger">{{ bloque.tipo_servicio or "Sin servicio" }}</span>
+          - {{ bloque.tipo_servicio or "Sin servicio" }}
 
           {% if bloque.cita_id %}
-            <!-- Formulario de pago -->
             <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
               <select name="metodo_pago" class="form-select form-select-sm">
                 <option value="">Método</option>
@@ -59,12 +54,10 @@
               <button type="submit" class="btn btn-sm btn-success">💾</button>
             </form>
 
-            <!-- Botón anular -->
             <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
               <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
             </form>
 
-            <!-- Botón recordatorio -->
             {% if bloque.mascota.telefono %}
               {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
               {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
@@ -74,7 +67,7 @@
               </a>
             {% endif %}
 
-            <!-- Agendar otra -->
+            <!-- ➕ Agendar otra cita a esta hora -->
             <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra a esta hora</a>
           {% endif %}
         {% endif %}
@@ -89,7 +82,6 @@
 </form>
 
 {% endblock %}
-
 
 {% block scripts %}
   {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
