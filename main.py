@@ -770,7 +770,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
                 bloques.append({
                     "hora": hora_formateada,
-                    "texto": f"{hora_formateada} <a href='/mascota/{cita.mascota.id}'>{cita.mascota.nombre}</a> - {cita.tipo_servicio} {icono_pago}",
+                     "texto": f"{hora_actual.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
