@@ -755,40 +755,42 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
     while hora_actual < fin:
         hora_formateada = hora_actual.strftime("%H:%M")
+
+        # Verifica si esta hora está dentro del rango de alguna cita
         coincidencias = [
             (inicio, fin_cita, cita)
             for inicio, fin_cita, cita in ocupados
-            if inicio == hora_actual
+            if inicio <= hora_actual < fin_cita
         ]
 
         if coincidencias:
-            for inicio, fin_cita, cita in coincidencias:
-                icono_pago = {
-                    "efectivo": "💵",
-                    "tarjeta": "💳"
-                }.get(cita.metodo_pago, "")
+            # Tomamos la primera coincidencia (puedes mejorar si se superponen citas)
+            inicio, fin_cita, cita = coincidencias[0]
+            icono_pago = {
+                "efectivo": "💵",
+                "tarjeta": "💳"
+            }.get(cita.metodo_pago, "")
 
-                bloques.append({
-                    "hora": hora_formateada,
-                    "texto": f"{hora_actual.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
-                    "enlace": None,
-                    "cita_id": cita.id,
-                    "metodo_pago": cita.metodo_pago,
-                    "precio": cita.precio,
-                    "mascota": cita.mascota,
-                    "tipo_servicio": cita.tipo_servicio
-                })
-
-
-
+            bloques.append({
+                "hora": hora_formateada,
+                "texto": f"{inicio.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
+                "enlace": None,
+                "cita_id": cita.id,
+                "metodo_pago": cita.metodo_pago,
+                "precio": cita.precio,
+                "mascota": cita.mascota,
+                "tipo_servicio": cita.tipo_servicio
+            })
         else:
-            # Solo si no hay cita en ese horario
             bloques.append({
                 "hora": hora_formateada,
                 "texto": f"{hora_formateada} - Libre",
                 "enlace": f"/cita?fecha={dia}&hora={hora_formateada}",
                 "cita_id": None,
-                "metodo_pago": None
+                "metodo_pago": None,
+                "precio": None,
+                "mascota": None,
+                "tipo_servicio": None
             })
 
         hora_actual += timedelta(minutes=paso_min)
