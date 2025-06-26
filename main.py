@@ -263,6 +263,7 @@ def registrar():
         tamano=request.args.get("tamano", ""),
         fecha=request.args.get("fecha", ""),
         hora=request.args.get("hora", ""),
+        tipo_servicio=request.args.get("tipo_servicio", ""),
         notas=request.args.get("notas", ""),
         metodo_pago=request.args.get("metodo_pago", ""),
         precio=request.args.get("precio", ""),
