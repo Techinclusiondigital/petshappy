@@ -206,7 +206,7 @@ def registrar():
 
         fecha_cita = request.args.get("fecha", "")
         hora_cita = request.args.get("hora", "")
-        tipo_servicio = request.args.get("tipo_servicio", ""),
+        tipo_servicio = request.args.get("tipo_servicio", "")
 
         if fecha_cita and hora_cita:
             try:
