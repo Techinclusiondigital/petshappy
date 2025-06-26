@@ -129,7 +129,7 @@ class Cita(db.Model):
     fecha = db.Column(db.Date, nullable=False)
     hora = db.Column(db.Time, nullable=False)
     duracion = db.Column(db.Integer, default=60)  # en minutos
-    tipo_servicio = db.Column(db.String(50))  # baño, corte, etc.
+    tipo_servicio = db.Column(db.String(100))  # baño, corte, etc.
     precio = db.Column(db.Float)
     metodo_pago = db.Column(db.String(20))
     notas = db.Column(db.Text)
@@ -196,6 +196,8 @@ def registrar():
             precio=request.form.get("precio") or 0,
             foto_antes=filename_antes,
             foto_despues=filename_despues,
+
+
             user_id=current_user.id
         )
 
@@ -385,8 +387,7 @@ def agendar_cita():
         notas = request.form["notas"]
         metodo_pago = request.form.get("metodo_pago")
         precio = request.form.get("precio")
-        tipo_servicio = request.form.get("tipo_servicio", "").strip()
-
+        tipo_servicio = request.form.get("tipo_servicio")
 
         try:
             precio = float(precio.replace(",", ".")) if precio else 0.0
