@@ -196,7 +196,7 @@ def registrar():
             precio=request.form.get("precio") or 0,
             foto_antes=filename_antes,
             foto_despues=filename_despues,
-
+            
 
             user_id=current_user.id
         )
@@ -206,6 +206,7 @@ def registrar():
 
         fecha_cita = request.args.get("fecha", "")
         hora_cita = request.args.get("hora", "")
+        tipo_servicio = request.args.get("tipo_servicio", ""),
 
         if fecha_cita and hora_cita:
             try:
@@ -221,6 +222,7 @@ def registrar():
                     tamano=nueva_mascota.tamano,
                     duracion=duracion,
                     notas=request.args.get("notas", ""),
+                    tipo_servicio=tipo_servicio,
                     metodo_pago=request.args.get("metodo_pago", ""),
                     precio=float(request.args.get("precio", 0)),
                     user_id=current_user.id
