@@ -756,7 +756,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     while hora_actual < fin:
         hora_formateada = hora_actual.strftime("%H:%M")
 
-        # Verifica si esta hora está dentro del rango de alguna cita
+        # Ver si la hora actual está dentro de alguna cita
         coincidencias = [
             (inicio, fin_cita, cita)
             for inicio, fin_cita, cita in ocupados
@@ -764,24 +764,30 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         ]
 
         if coincidencias:
-            # Tomamos la primera coincidencia (puedes mejorar si se superponen citas)
             inicio, fin_cita, cita = coincidencias[0]
-            icono_pago = {
-                "efectivo": "💵",
-                "tarjeta": "💳"
-            }.get(cita.metodo_pago, "")
+            
+            # Mostrar solo en el bloque de inicio
+            if hora_actual == inicio:
+                icono_pago = {
+                    "efectivo": "💵",
+                    "tarjeta": "💳"
+                }.get(cita.metodo_pago, "")
 
-            bloques.append({
-                "hora": hora_formateada,
-                "texto": f"{inicio.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
-                "enlace": None,
-                "cita_id": cita.id,
-                "metodo_pago": cita.metodo_pago,
-                "precio": cita.precio,
-                "mascota": cita.mascota,
-                "tipo_servicio": cita.tipo_servicio
-            })
+                bloques.append({
+                    "hora": hora_formateada,
+                    "texto": f"{inicio.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
+                    "enlace": None,
+                    "cita_id": cita.id,
+                    "metodo_pago": cita.metodo_pago,
+                    "precio": cita.precio,
+                    "mascota": cita.mascota,
+                    "tipo_servicio": cita.tipo_servicio
+                })
+            else:
+                # Bloque ocupado pero no mostrar nada
+                pass  # omite este bloque por completo
         else:
+            # Bloque libre
             bloques.append({
                 "hora": hora_formateada,
                 "texto": f"{hora_formateada} - Libre",
@@ -796,6 +802,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         hora_actual += timedelta(minutes=paso_min)
 
     return bloques
+
 
 
 
