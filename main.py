@@ -262,6 +262,7 @@ def registrar():
         telefono=request.args.get("telefono", ""),
         raza=request.args.get("raza", ""),
         tamano=request.args.get("tamano", ""),
+        duenio=session.get("datos_cita_pendiente", {}).get("duenio", ""),
         fecha=request.args.get("fecha", ""),
         hora=request.args.get("hora", ""),
         notas=request.args.get("notas", ""),
@@ -386,6 +387,10 @@ def agendar_cita():
                 "metodo_pago": request.form.get("metodo_pago"),
                 "notas": request.form.get("notas"),
                 "tamano": request.form.get("tamano"),
+                "telefono": request.form.get("telefono"),
+                "raza": request.form.get("raza"),
+                "duenio": request.form.get("duenio"),
+
             }
             return redirect(url_for("registrar", nombre=request.form.get("nombre_mascota")))
 
