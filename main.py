@@ -205,36 +205,36 @@ def registrar():
         db.session.add(nueva_mascota)
         db.session.commit()
 
-        fecha_cita = request.args.get("fecha", "")
-        hora_cita = request.args.get("hora", "")
-        tipo_servicio = request.form.get("tipo_servicio", "")
-
-        if fecha_cita and hora_cita:
+        datos_cita = session.pop("datos_cita_pendiente", None)
+        if datos_cita:
             try:
-                fecha_dt = datetime.strptime(fecha_cita, "%Y-%m-%d").date()
-                hora_dt = datetime.strptime(hora_cita, "%H:%M").time()
-                duracion = int(request.form.get("duracion", 60))  # Valor por defecto: 60 minutos
-
+                fecha_dt = datetime.strptime(datos_cita["fecha"], "%Y-%m-%d").date()
+                hora_dt = datetime.strptime(datos_cita["hora"], "%H:%M").time()
+                duracion = int(datos_cita.get("duracion", 60))
+                tipo_servicio = datos_cita.get("tipo_servicio", "")
+                metodo_pago = datos_cita.get("metodo_pago", "")
+                precio = float(datos_cita.get("precio", 0) or 0.0)
+                notas = datos_cita.get("notas", "")
+                tamano = datos_cita.get("tamano", nueva_mascota.tamano)
 
                 nueva_cita = Cita(
                     mascota_id=nueva_mascota.id,
                     fecha=fecha_dt,
                     hora=hora_dt,
-                    tamano=nueva_mascota.tamano,
                     duracion=duracion,
-                    notas=request.args.get("notas", ""),
                     tipo_servicio=tipo_servicio,
-                    metodo_pago=request.args.get("metodo_pago", ""),
-                    precio=float(request.args.get("precio", 0)),
-                    user_id=current_user.id
+                    metodo_pago=metodo_pago,
+                    precio=precio,
+                    notas=notas,
+                    user_id=current_user.id,
+                    tamano=tamano
                 )
                 db.session.add(nueva_cita)
                 db.session.commit()
             except Exception as e:
-                print(f"Error al crear cita automática: {e}")
+                print(f"❌ Error al crear cita automática: {e}")
 
         return redirect("/dashboard")
-
     RAZAS = [
         "Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
         "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
@@ -264,10 +264,10 @@ def registrar():
         tamano=request.args.get("tamano", ""),
         fecha=request.args.get("fecha", ""),
         hora=request.args.get("hora", ""),
-        tipo_servicio=request.args.get("tipo_servicio", ""),
         notas=request.args.get("notas", ""),
         metodo_pago=request.args.get("metodo_pago", ""),
         precio=request.args.get("precio", ""),
+        tipo_servicio=session.get("datos_cita_pendiente", {}).get("tipo_servicio", ""),
         RAZAS=RAZAS
     )
 
@@ -363,6 +363,7 @@ def buscar_mascota():
             return redirect(f"/registrar?nombre={nombre}")
     return render_template("buscar_mascota.html")
 
+from flask import session
 @app.route("/cita", methods=["GET", "POST"])
 @login_required
 def agendar_cita():
@@ -375,75 +376,71 @@ def agendar_cita():
         ).first()
 
         if not mascota:
-            return redirect(
-                f"/registrar?nombre={nombre_input}"
-                f"&telefono={request.form.get('telefono', '')}"
-                f"&raza={request.form.get('raza', '')}"
-                f"&tamano={request.form.get('tamano', '')}"
-                f"&fecha={request.form.get('fecha', '')}"
-                f"&hora={request.form.get('hora', '')}"
-            )
+            # ✅ Guardar los datos de la cita temporalmente en sesión
+            session["datos_cita_pendiente"] = {
+                "fecha": request.form.get("fecha"),
+                "hora": request.form.get("hora"),
+                "duracion": request.form.get("duracion"),
+                "tipo_servicio": request.form.get("tipo_servicio"),
+                "precio": request.form.get("precio"),
+                "metodo_pago": request.form.get("metodo_pago"),
+                "notas": request.form.get("notas"),
+                "tamano": request.form.get("tamano"),
+            }
+            return redirect(url_for("registrar", nombre=request.form.get("nombre_mascota")))
 
-        # Obtener datos del formulario
+        # Mascota existe: crear cita normalmente
         fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
         hora = datetime.strptime(request.form["hora"], "%H:%M").time()
         tamano = request.form["tamano"]
         notas = request.form["notas"]
         metodo_pago = request.form.get("metodo_pago")
-        precio = request.form.get("precio")
         tipo_servicio = request.form.get("tipo_servicio")
+        precio = request.form.get("precio")
 
         try:
             precio = float(precio.replace(",", ".")) if precio else 0.0
         except ValueError:
             precio = 0.0
 
-        # ✅ NUEVO: Duración establecida por el usuario
         duracion = int(request.form.get("duracion", 60))
 
-        hora_inicio = datetime.combine(fecha, hora)
-        hora_fin = hora_inicio + timedelta(minutes=duracion)
-
-       
-
-
-        # Crear y guardar cita
         nueva_cita = Cita(
             mascota_id=mascota.id,
             fecha=fecha,
             hora=hora,
-            duracion = int(request.form.get("duracion", 60)),
+            duracion=duracion,
             notas=notas,
             tipo_servicio=tipo_servicio,
-
             metodo_pago=metodo_pago,
             precio=precio,
-            user_id=current_user.id
+            user_id=current_user.id,
+            tamano=tamano
         )
         db.session.add(nueva_cita)
         db.session.commit()
 
         return redirect("/dashboard")
 
-    # GET: Mostrar formulario con fecha y hora si vienen en la URL
+    # GET: mostrar el formulario
     fecha = request.args.get("fecha", "")
     hora = request.args.get("hora", "")
     nombre = request.args.get("nombre", "")
     telefono = request.args.get("telefono", "")
     raza = request.args.get("raza", "")
     tamano = request.args.get("tamano", "")
-    tipo_servicio = request.form.get("tipo_servicio", "").strip()
+    tipo_servicio = request.args.get("tipo_servicio", "")
 
     return render_template(
-    "agendar_cita.html",
-    nombre=nombre,
-    telefono=telefono,
-    raza=raza,
-    tamano=tamano,
-    tipo_servicio=tipo_servicio,
-    fecha=fecha,
-    hora=hora
-)
+        "agendar_cita.html",
+        nombre=nombre,
+        telefono=telefono,
+        raza=raza,
+        tamano=tamano,
+        tipo_servicio=tipo_servicio,
+        fecha=fecha,
+        hora=hora
+    )
 
 
 
