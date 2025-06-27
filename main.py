@@ -115,6 +115,7 @@ class Mascota(db.Model):
     telefono = db.Column(db.String(20))
     caracter = db.Column(db.Text)
     tipo_corte = db.Column(db.String(100))
+    tipo_servicio = db.Column(db.String(100))  # baño, corte, etc
     precio = db.Column(db.Float)  # Precio estándar por cita
     foto_antes = db.Column(db.String(200), nullable=True)
     foto_despues = db.Column(db.String(200), nullable=True)
