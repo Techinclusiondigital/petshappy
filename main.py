@@ -256,21 +256,21 @@ def registrar():
         "Gato oriental de pelo corto", "Gato persa", "Gato ragdoll", "Gato savannah", "Gato siamés", "Gato siberiano",
         "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van"
     ]
-
+    datos = session.get("datos_cita_pendiente", {})
     return render_template("registrar.html",
-        nombre=request.args.get("nombre", ""),
-        telefono=request.args.get("telefono", ""),
-        raza=request.args.get("raza", ""),
-        tamano=request.args.get("tamano", ""),
-        duenio=session.get("datos_cita_pendiente", {}).get("duenio", ""),
-        fecha=request.args.get("fecha", ""),
-        hora=request.args.get("hora", ""),
-        notas=request.args.get("notas", ""),
-        metodo_pago=request.args.get("metodo_pago", ""),
-        precio=request.args.get("precio", ""),
-        tipo_servicio=session.get("datos_cita_pendiente", {}).get("tipo_servicio", ""),
-        RAZAS=RAZAS
-    )
+    nombre=request.args.get("nombre", ""),
+    telefono=datos.get("telefono", ""),
+    raza=datos.get("raza", ""),
+    tamano=datos.get("tamano", ""),
+    duenio=datos.get("duenio", ""),
+    fecha=datos.get("fecha", ""),
+    hora=datos.get("hora", ""),
+    notas=datos.get("notas", ""),
+    metodo_pago=datos.get("metodo_pago", ""),
+    precio=datos.get("precio", ""),
+    tipo_servicio=datos.get("tipo_servicio", ""),
+    RAZAS=RAZAS
+)
 
 @app.route("/recuperar", methods=["GET", "POST"])
 def recuperar():
