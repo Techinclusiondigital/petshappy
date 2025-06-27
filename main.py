@@ -753,28 +753,21 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     hora_actual = datetime.combine(dia, hora_inicio)
     fin = datetime.combine(dia, hora_fin)
     citas_dia = citas_por_fecha.get(dia, [])
-    ocupados = []
 
+    # Indexar todas las citas por su hora de inicio exacta
+    citas_por_inicio = {}
     for cita in citas_dia:
         inicio = datetime.combine(dia, cita.hora)
-        fin_cita = inicio + timedelta(minutes=cita.duracion)
-        ocupados.append((inicio, fin_cita, cita))
+        if inicio not in citas_por_inicio:
+            citas_por_inicio[inicio] = []
+        citas_por_inicio[inicio].append(cita)
 
     while hora_actual < fin:
         hora_formateada = hora_actual.strftime("%H:%M")
+        citas_en_esta_hora = citas_por_inicio.get(hora_actual, [])
 
-        # Ver si la hora actual está dentro de alguna cita
-        coincidencias = [
-            (inicio, fin_cita, cita)
-            for inicio, fin_cita, cita in ocupados
-            if inicio <= hora_actual < fin_cita
-        ]
-
-        if coincidencias:
-            inicio, fin_cita, cita = coincidencias[0]
-            
-            # Mostrar solo en el bloque de inicio
-            if hora_actual == inicio:
+        if citas_en_esta_hora:
+            for cita in citas_en_esta_hora:
                 icono_pago = {
                     "efectivo": "💵",
                     "tarjeta": "💳"
@@ -782,7 +775,7 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
                 bloques.append({
                     "hora": hora_formateada,
-                    "texto": f"{inicio.strftime('%H:%M')} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
+                    "texto": f"{hora_formateada} {cita.mascota.nombre} - {cita.tipo_servicio or 'Sin servicio'} {icono_pago}",
                     "enlace": None,
                     "cita_id": cita.id,
                     "metodo_pago": cita.metodo_pago,
@@ -790,9 +783,6 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "mascota": cita.mascota,
                     "tipo_servicio": cita.tipo_servicio
                 })
-            else:
-                # Bloque ocupado pero no mostrar nada
-                pass  # omite este bloque por completo
         else:
             # Bloque libre
             bloques.append({
