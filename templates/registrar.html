@@ -17,7 +17,8 @@
      
   <label for="raza">Raza:</label>
   <div class ="raza">
-  <input list="razas" name="raza" id="raza" placeholder="Ej. Labrador, Gato persa..." required>
+ <input list="razas" name="raza" id="raza" placeholder="Ej. Labrador..." required value="{{ raza }}">
+
   <datalist id="razas">
     {% for raza in RAZAS %}
       <option value="{{ raza }}">
@@ -43,7 +44,7 @@
         <label for="caracter">Carácter:</label><br>
         <textarea name="caracter"></textarea><br><br>
 
-        <label for="tipo_corte">Tipo de corte:</label><br>
+        <label for="tipo_corte">Descripción:</label><br>
         <input type="text" name="tipo_corte"><br><br>
 
         <label for="precio">Precio (€):</label><br>
