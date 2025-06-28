@@ -48,10 +48,10 @@
 {% for cita in mascota.citas %}
   <div class="bloque-cita">
     <h4>🗓️ Cita del {{ cita.fecha.strftime('%d/%m/%Y') }}</h4>
-    <div class="campo"><span>Hora:</span> {{ cita.hora.strftime('%H:%M') }}</div>
-    <div class="campo"><span>Servicio:</span> {{ cita.tipo_servicio or 'Sin especificar' }}</div>
-    <div class="campo"><span>Notas:</span> {{ cita.notas or '—' }}</div>
-    <div class="campo"><span>Precio (€):</span> {{ "%.2f"|format(cita.precio or 0) }}</div>
+    <div class="campo-cita"><span>Hora:</span> {{ cita.hora.strftime('%H:%M') }}</div>
+    <div class="campo-cita"><span>Servicio:</span> {{ cita.tipo_servicio or 'Sin especificar' }}</div>
+    <div class="campo-cita"><span>Notas:</span> {{ cita.notas or '—' }}</div>
+    <div class="campo-cita"><span>Precio (€):</span> {{ "%.2f"|format(cita.precio or 0) }}</div>
     <a href="/editar_cita/{{ cita.id }}" class="editar-link">✏️ Editar cita</a>
   </div>
 {% else %}

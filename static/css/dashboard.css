@@ -298,11 +298,11 @@ button:hover {
     color: #333;
   }
 
-  .bloque-cita .campo {
+  .bloque-cita .campo-cita {
     margin-bottom: 0.5rem;
   }
 
-  .bloque-cita .campo span {
+  .bloque-cita .campo-cita span {
     font-weight: bold;
     display: inline-block;
     width: 120px;
@@ -318,6 +318,25 @@ button:hover {
   .bloque-cita .editar-link:hover {
     text-decoration: underline;
   }
+
+  .campo-cita {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.campo-cita span {
+  font-weight: bold;
+  min-width: 130px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.campo-cita div {
+  flex-grow: 1;
+  word-break: break-word;
+}
 
    @media (max-width: 576px) {
     .campo-cita span {
