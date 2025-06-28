@@ -401,6 +401,15 @@ margin: auto;
 width: 80%;
   }
 
+   .campo-cita {
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .campo-cita span {
+      min-width: unset;
+    }
+
   .fecha-form input[type="date"],
   .fecha-form button {
     width: 90%;
