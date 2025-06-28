@@ -334,6 +334,11 @@ button:hover {
     
   }
 
+  .tabla-centrada {
+margin: auto;
+width: 80%;
+  }
+
   .fecha-form input[type="date"],
   .fecha-form button {
     width: 90%;
