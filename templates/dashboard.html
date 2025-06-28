@@ -26,6 +26,7 @@
     <form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
       <label for="fecha">📅 Selecciona una fecha:</label>
       <input type="date" id="fecha" name="fecha" required>
+      <br><br>
       <button class="btn-agenda">Ver agenda</button>
     </form>
 
@@ -106,29 +107,30 @@
       }).render('#paypal-button-container');
     </script>
   {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
-    <script>
-      const finPrueba = new Date("{{ fecha_fin_prueba }}");
+  <script>
+    const finPrueba = new Date("{{ fecha_fin_prueba.isoformat() }}");
 
-      function actualizarContador() {
-        const ahora = new Date();
-        const tiempoRestante = finPrueba - ahora;
+    function actualizarContador() {
+      const ahora = new Date();
+      const tiempoRestante = finPrueba - ahora;
 
-        if (tiempoRestante <= 0) {
-          document.getElementById("contador").textContent = "🚫 Prueba finalizada";
-          return;
-        }
-
-        const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
-        const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
-        const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
-        const segundos = Math.floor((tiempoRestante / 1000) % 60);
-
-        document.getElementById("contador").textContent =
-          `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
+      if (tiempoRestante <= 0) {
+        document.getElementById("contador").textContent = "🚫 Prueba finalizada";
+        return;
       }
 
-      setInterval(actualizarContador, 1000);
-      actualizarContador();
-    </script>
-  {% endif %}
+      const dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+      const horas = Math.floor((tiempoRestante / (1000 * 60 * 60)) % 24);
+      const minutos = Math.floor((tiempoRestante / (1000 * 60)) % 60);
+      const segundos = Math.floor((tiempoRestante / 1000) % 60);
+
+      document.getElementById("contador").textContent =
+        `${dias} días, ${horas}h ${minutos}m ${segundos}s`;
+    }
+
+    actualizarContador();
+    setInterval(actualizarContador, 1000);
+  </script>
+{% endif %}
+
 {% endblock %}

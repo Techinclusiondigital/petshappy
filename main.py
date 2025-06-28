@@ -74,15 +74,18 @@ class Usuario(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def en_periodo_prueba(self):
-        #return False
-        ahora = datetime.now(timezone.utc)
-        if self.fecha_alta.tzinfo is None:
-            fecha_alta_aware = self.fecha_alta.replace(tzinfo=timezone.utc)
-        else:
-            fecha_alta_aware = self.fecha_alta
 
-        return ahora <= fecha_alta_aware + timedelta(days=30)
+
+    def en_periodo_prueba(self):
+        ahora = datetime.now(timezone.utc)
+
+        if self.fecha_alta.tzinfo is None:
+            fecha_alta = self.fecha_alta.replace(tzinfo=timezone.utc)
+        else:
+            fecha_alta = self.fecha_alta
+
+        return ahora <= fecha_alta + timedelta(days=30)
+ 
 
 import smtplib
 from email.mime.text import MIMEText
@@ -148,14 +151,6 @@ class Cita(db.Model):
 
 # RUTAS
 from flask_login import current_user
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-# … (más rutas, si las hubiera) …
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 @app.route("/")
 def inicio():
@@ -653,7 +648,7 @@ def arqueo_pdf():
     response.headers['Content-Disposition'] = 'inline; filename=arqueo.pdf'
     return response
 
-@app.route("/registro", methods=["GET", "POST"])
+@app.route("/registro", methods=["GET", "POST"], endpoint='registro')
 def registro():
     if request.method == "POST":
         nombre = request.form["nombre_usuario"]
@@ -713,7 +708,7 @@ def registro():
 
 from flask import flash
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"], endpoint='login')
 def login():
     if request.method == "POST":
         nombre = request.form["nombre_usuario"]
@@ -754,20 +749,30 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
     fin = datetime.combine(dia, hora_fin)
     citas_dia = citas_por_fecha.get(dia, [])
 
-    # Indexar todas las citas por su hora de inicio exacta
-    citas_por_inicio = {}
+    ocupados = []
     for cita in citas_dia:
         inicio = datetime.combine(dia, cita.hora)
-        if inicio not in citas_por_inicio:
-            citas_por_inicio[inicio] = []
-        citas_por_inicio[inicio].append(cita)
+        fin_cita = inicio + timedelta(minutes=cita.duracion)
+        ocupados.append((inicio, fin_cita, cita))
 
     while hora_actual < fin:
         hora_formateada = hora_actual.strftime("%H:%M")
-        citas_en_esta_hora = citas_por_inicio.get(hora_actual, [])
+
+        # Buscar citas que comienzan exactamente a esta hora
+        citas_en_esta_hora = [
+            (inicio, fin_cita, cita)
+            for inicio, fin_cita, cita in ocupados
+            if inicio == hora_actual
+        ]
+
+        # Buscar si esta hora está ocupada por alguna cita en curso
+        en_curso = any(
+            inicio < hora_actual < fin_cita
+            for inicio, fin_cita, _ in ocupados
+        )
 
         if citas_en_esta_hora:
-            for cita in citas_en_esta_hora:
+            for inicio, fin_cita, cita in citas_en_esta_hora:
                 icono_pago = {
                     "efectivo": "💵",
                     "tarjeta": "💳"
@@ -783,6 +788,11 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
                     "mascota": cita.mascota,
                     "tipo_servicio": cita.tipo_servicio
                 })
+
+        elif en_curso:
+            # Hay una cita en curso, pero no comienza exactamente en este bloque → no mostrar nada
+            pass
+
         else:
             # Bloque libre
             bloques.append({
@@ -799,8 +809,6 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
         hora_actual += timedelta(minutes=paso_min)
 
     return bloques
-
-
 
 
 
@@ -875,7 +883,7 @@ def dashboard():
     return render_template(
         "dashboard.html",
         agenda=agenda_completa,
-        fecha_fin_prueba=fecha_fin_prueba.isoformat()
+        fecha_fin_prueba=fecha_fin_prueba
     )
 
 
@@ -916,6 +924,8 @@ def suscripcion_exitosa():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+print("Rutas registradas:")
+print(app.url_map)
 
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 

@@ -3,28 +3,53 @@
     <h1>Ficha de {{ mascota.nombre }} </h1>
     <a href="/ficha_pdf/{{ mascota.id }}" target="_blank">📄 Exportar historial en PDF</a><br><br>
     <a href="/editar/{{ mascota.id }}">✏️ Editar ficha</a>
+    <br><br>
+<table class="table table-bordered">
+    <tr>
+      <th>Nombre del dueño</th>
+      <td>{{ mascota.duenio }}</td>
+    </tr>
+    <tr>
+      <th>Teléfono</th>
+      <td>{{ mascota.telefono or 'No disponible' }}</td>
+    </tr>
+    <tr>
+      <th>Raza</th>
+      <td>{{ mascota.raza }}</td>
+    </tr>
+    <tr>
+      <th>Tamaño</th>
+     <td>
+  {% if mascota.tamano == 'pequeno' %}
+    Pequeño
+  {% elif mascota.tamano == 'mediano' %}
+    Mediano
+  {% elif mascota.tamano == 'grande' %}
+    Grande
+  {% else %}
+    {{ mascota.tamano }}
+  {% endif %}
+</td>
 
-    <ul>
-        <li><strong>Raza:</strong> {{ mascota.raza }}</li>
-        <li><strong>Fecha de nacimiento:</strong>
-            {% if mascota.edad %}
-                {{ mascota.edad.strftime('%d/%m/%Y') }}
-            {% else %}
-                No especificada
-            {% endif %}
-        </li>
-        
-        <li><strong>Dueño:</strong> {{ mascota.duenio }}</li>
-        <li><strong>Teléfono:</strong> {{ mascota.telefono }}</li>
-        <li><strong>Carácter:</strong> {{ mascota.caracter }}</li>
-        <li><strong>Tipo de corte:</strong> {{ mascota.tipo_corte }}</li>
-    </ul>
+    </tr>
+     <tr>
+      <th>Fecha de nacimiento</th>
+      <td>
+        {{ mascota.fecha_nacimiento.strftime('%d/%m/%Y') if mascota.fecha_nacimiento else 'No registrada' }}
+      </td>
+    </tr>
+    <tr>
+      <th>Carácter</th>
+      <td>{{ mascota.caracter or 'No especificado' }}</td>
+    </tr>
+  </table>
     <h2>📋 Historial de Citas</h2>
     {% if mascota.citas %}
     <table class="tabla-centrada">
             <tr>
                 <th>Fecha</th>
                 <th>Hora</th>
+                <th>Servicio</th>
                 <th>Notas</th>
                 <th>Precio (€)</th>
                 <th>Editar</th>
@@ -33,6 +58,7 @@
             <tr>
                 <td>{{ cita.fecha }}</td>
                 <td>{{ cita.hora.strftime('%H:%M') }}</td>
+                <td>{{ cita.tipo_servicio or 'Sin especificar' }}</td>
                 <td>{{ cita.notas or '' }}</td>
                 <td>{{ "%.2f"|format(cita.precio or 0) }}</td>
                 <td><a href="/editar_cita/{{ cita.id }}">✏️ Editar</a></td>

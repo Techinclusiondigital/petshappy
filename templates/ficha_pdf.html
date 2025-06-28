@@ -11,31 +11,70 @@
 </head>
 <body>
     <h1>Ficha de {{ mascota.nombre }} </h1>
-    <p><strong>Raza:</strong> {{ mascota.raza }}<br>
-       <strong>Edad:</strong> {{ mascota.edad }}<br>
-       <strong>Dueño:</strong> {{ mascota.duenio }}<br>
-       <strong>Teléfono:</strong> {{ mascota.telefono }}<br>
-       <strong>Tipo de corte:</strong> {{ mascota.tipo_corte }}<br>
-       <strong>Carácter:</strong> {{ mascota.caracter }}</p>
+   <table class="table table-bordered">
+    <tr>
+      <th>Nombre del dueño</th>
+      <td>{{ mascota.duenio }}</td>
+    </tr>
+    <tr>
+      <th>Teléfono</th>
+      <td>{{ mascota.telefono or 'No disponible' }}</td>
+    </tr>
+    <tr>
+      <th>Raza</th>
+      <td>{{ mascota.raza }}</td>
+    </tr>
+    <tr>
+      <th>Tamaño</th>
+      <td>
+  {% if mascota.tamano == 'pequeno' %}
+    Pequeño
+  {% elif mascota.tamano == 'mediano' %}
+    Mediano
+  {% elif mascota.tamano == 'grande' %}
+    Grande
+  {% else %}
+    {{ mascota.tamano }}
+  {% endif %}
+</td>
 
-    <h2>Historial de citas</h2>
+    </tr>
+     <tr>
+      <th>Fecha de nacimiento</th>
+      <td>
+        {{ mascota.fecha_nacimiento.strftime('%d/%m/%Y') if mascota.fecha_nacimiento else 'No registrada' }}
+      </td>
+    </tr>
+    <tr>
+      <th>Carácter</th>
+      <td>{{ mascota.caracter or 'No especificado' }}</td>
+    </tr>
+    <tr>
+      <th>Descripción</th>
+      <td>{{ mascota.tipo_corte or 'No especificada' }}</td>
+    </tr>
+  </table>
+    <h2>Historial de Citas</h2>
     {% if mascota.citas %}
-    <table>
-        <tr>
-            <th>Fecha</th>
-            <th>Hora</th>
-            <th>Notas</th>
-            <th>Precio (€)</th>
-        </tr>
-        {% for cita in mascota.citas %}
-        <tr>
-            <td>{{ cita.fecha }}</td>
-            <td>{{ cita.hora.strftime('%H:%M') }}</td>
-            <td>{{ cita.notas or '' }}</td>
-            <td>{{ "%.2f"|format(cita.precio or 0) }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <table class="tabla-centrada">
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Servicio</th>
+                <th>Notas</th>
+                <th>Precio (€)</th>
+                
+            </tr>
+            {% for cita in mascota.citas %}
+            <tr>
+                <td>{{ cita.fecha }}</td>
+                <td>{{ cita.hora.strftime('%H:%M') }}</td>
+                <td>{{ cita.tipo_servicio or 'Sin especificar' }}</td>
+                <td>{{ cita.notas or '' }}</td>
+                <td>{{ "%.2f"|format(cita.precio or 0) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
     {% else %}
         <p>No hay citas registradas.</p>
     {% endif %}
