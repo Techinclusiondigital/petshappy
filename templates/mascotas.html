@@ -1,6 +1,36 @@
-{% extends "base.html" %}
+<style>
+  /* Ocultar tabla en móviles */
+  @media (max-width: 768px) {
+    .tabla-mascotas { display: none; }
+  }
 
-{% block content %}
+  /* Ocultar tarjetas en escritorio */
+  @media (min-width: 769px) {
+    .tarjeta-mascota { display: none; }
+  }
+
+  .tarjeta-mascota {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  .tarjeta-mascota .campo {
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .tarjeta-mascota .campo span {
+    font-weight: bold;
+    display: inline-block;
+    width: 90px;
+    color: #333;
+  }
+</style>
+
 <h1>Listado de Mascotas Registradas</h1>
 <a href="/">Volver al inicio</a> | 
 <a href="/registrar">Registrar nueva mascota</a>
@@ -13,41 +43,59 @@
 <br>
 
 {% if mascotas %}
-<div class="table-responsive">
-  <table class="table table-striped table-bordered">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Dueño</th>
-        <th>Teléfono</th>
-        <th>Raza</th>
-        <th>Tamaño</th>
-        <th>Acciones</th> <!-- ✅ Columna añadida -->
-      </tr>
-    </thead>
-    <tbody>
-      {% for mascota in mascotas %}
-      <tr>
-        <td>{{ mascota.nombre }}</td>
-        <td>{{ mascota.duenio }}</td>
-        <td>{{ mascota.telefono }}</td>
-        <td>{{ mascota.raza }}</td>
-        <td>
-          {% if mascota.tamano == 'pequeno' %}Pequeño
-          {% elif mascota.tamano == 'mediano' %}Mediano
-          {% elif mascota.tamano == 'grande' %}Grande
-          {% else %}{{ mascota.tamano }}
-          {% endif %}
-        </td>
-        <td>
-          <a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary">👁️ Ver</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <!-- 🖥️ Tabla para escritorio -->
+  <div class="table-responsive tabla-mascotas">
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Dueño</th>
+          <th>Teléfono</th>
+          <th>Raza</th>
+          <th>Tamaño</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mascota in mascotas %}
+        <tr>
+          <td>{{ mascota.nombre }}</td>
+          <td>{{ mascota.duenio }}</td>
+          <td>{{ mascota.telefono }}</td>
+          <td>{{ mascota.raza }}</td>
+          <td>
+            {% if mascota.tamano == 'pequeno' %}Pequeño
+            {% elif mascota.tamano == 'mediano' %}Mediano
+            {% elif mascota.tamano == 'grande' %}Grande
+            {% else %}{{ mascota.tamano }}
+            {% endif %}
+          </td>
+          <td><a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary">👁️ Ver</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 📱 Tarjetas para móviles -->
+  <div class="tarjetas-mascotas">
+    {% for mascota in mascotas %}
+    <div class="tarjeta-mascota">
+      <div class="campo"><span>Nombre:</span> {{ mascota.nombre }}</div>
+      <div class="campo"><span>Dueño:</span> {{ mascota.duenio }}</div>
+      <div class="campo"><span>Teléfono:</span> {{ mascota.telefono }}</div>
+      <div class="campo"><span>Raza:</span> {{ mascota.raza }}</div>
+      <div class="campo"><span>Tamaño:</span>
+        {% if mascota.tamano == 'pequeno' %}Pequeño
+        {% elif mascota.tamano == 'mediano' %}Mediano
+        {% elif mascota.tamano == 'grande' %}Grande
+        {% else %}{{ mascota.tamano }}
+        {% endif %}
+      </div>
+      <div><a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary mt-2">👁️ Ver ficha</a></div>
+    </div>
+    {% endfor %}
+  </div>
 {% else %}
   <p>No hay mascotas registradas.</p>
 {% endif %}
-{% endblock %}
