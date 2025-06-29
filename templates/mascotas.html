@@ -1,36 +1,6 @@
-<style>
-  /* Ocultar tabla en móviles */
-  @media (max-width: 768px) {
-    .tabla-mascotas { display: none; }
-  }
+{% extends "base.html" %}
 
-  /* Ocultar tarjetas en escritorio */
-  @media (min-width: 769px) {
-    .tarjeta-mascota { display: none; }
-  }
-
-  .tarjeta-mascota {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  }
-
-  .tarjeta-mascota .campo {
-    margin-bottom: 0.4rem;
-    font-size: 0.95rem;
-  }
-
-  .tarjeta-mascota .campo span {
-    font-weight: bold;
-    display: inline-block;
-    width: 90px;
-    color: #333;
-  }
-</style>
-
+{% block content %}
 <h1>Listado de Mascotas Registradas</h1>
 <a href="/">Volver al inicio</a> | 
 <a href="/registrar">Registrar nueva mascota</a>
@@ -43,7 +13,7 @@
 <br>
 
 {% if mascotas %}
-  <!-- 🖥️ Tabla para escritorio -->
+  <!-- 🖥️ Tabla visible solo en escritorio -->
   <div class="table-responsive tabla-mascotas">
     <table class="table table-striped table-bordered">
       <thead>
@@ -70,14 +40,16 @@
             {% else %}{{ mascota.tamano }}
             {% endif %}
           </td>
-          <td><a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary">👁️ Ver</a></td>
+          <td>
+            <a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary">👁️ Ver</a>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
-  <!-- 📱 Tarjetas para móviles -->
+  <!-- 📱 Tarjetas visibles solo en móvil -->
   <div class="tarjetas-mascotas">
     {% for mascota in mascotas %}
     <div class="tarjeta-mascota">
@@ -92,10 +64,11 @@
         {% else %}{{ mascota.tamano }}
         {% endif %}
       </div>
-      <div><a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary mt-2">👁️ Ver ficha</a></div>
+      <div><a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary mt-2">👁️ Ver</a></div>
     </div>
     {% endfor %}
   </div>
 {% else %}
   <p>No hay mascotas registradas.</p>
 {% endif %}
+{% endblock %}

@@ -387,6 +387,47 @@ button:hover {
   -webkit-overflow-scrolling: touch;
 }
 
+ @media (max-width: 768px) {
+    .tabla-mascotas {
+         display: none; 
+       
+        }
+  }
+
+  /* Ocultar tarjetas en escritorio */
+  @media (min-width: 769px) {
+    .tarjeta-mascota { 
+        display: none; 
+    
+    }
+  }
+
+  .tarjeta-mascota {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    width: 80%;
+    margin: auto;
+    text-align: center;
+  }
+
+  .tarjeta-mascota .campo {
+     display: flex;
+  align-items:center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  }
+
+  .tarjeta-mascota .campo span {
+   font-weight: bold;
+  min-width: 130px;
+  color: #333;
+  flex-shrink: 0;
+  }
+
 
 /* Responsive para pantallas pequeñas */
 @media (max-width: 600px) {
