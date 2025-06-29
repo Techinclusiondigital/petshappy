@@ -7,37 +7,47 @@
 <br><br>
 
 <form method="GET" action="/mascotas">
-    <input type="text" name="q" placeholder="Buscar por nombre o teléfono">
-    <button type="submit">Buscar</button>
+  <input type="text" name="q" placeholder="Buscar por nombre o teléfono">
+  <button type="submit">Buscar</button>
 </form>
 <br>
 
-<div style="overflow-x: auto; display: flex; justify-content: center;">
-    {% if mascotas %}
-    <table border="1" cellpadding="8" style="border-collapse: collapse; min-width: 900px; background-color: white;">
-        <tr style="background-color: #00cc7a; color: white;">
-            <th>Nombre</th>
-            <th>Raza</th>
-            <th>Fecha de nacimiento</th>
-            <th>Dueño</th>
-            <th>Teléfono</th>
-            <th>Carácter</th>
-            <th>Tipo de Corte</th>
-        </tr>
-        {% for mascota in mascotas %}
-        <tr>
-            <td><a href="/ficha/{{ mascota.id }}">{{ mascota.nombre }}</a></td>
-            <td>{{ mascota.raza }}</td>
-            <td>{{ mascota.edad }}</td>
-            <td>{{ mascota.duenio }}</td>
-            <td>{{ mascota.telefono }}</td>
-            <td>{{ mascota.caracter }}</td>
-            <td>{{ mascota.tipo_corte }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% else %}
-        <p>No hay mascotas registradas.</p>
-    {% endif %}
+{% if mascotas %}
+<div class="table-responsive">
+  <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Dueño</th>
+        <th>Teléfono</th>
+        <th>Raza</th>
+        <th>Tamaño</th>
+        <th>Acciones</th> <!-- ✅ Columna añadida -->
+      </tr>
+    </thead>
+    <tbody>
+      {% for mascota in mascotas %}
+      <tr>
+        <td>{{ mascota.nombre }}</td>
+        <td>{{ mascota.duenio }}</td>
+        <td>{{ mascota.telefono }}</td>
+        <td>{{ mascota.raza }}</td>
+        <td>
+          {% if mascota.tamano == 'pequeno' %}Pequeño
+          {% elif mascota.tamano == 'mediano' %}Mediano
+          {% elif mascota.tamano == 'grande' %}Grande
+          {% else %}{{ mascota.tamano }}
+          {% endif %}
+        </td>
+        <td>
+          <a href="/mascota/{{ mascota.id }}" class="btn btn-sm btn-primary">👁️ Ver</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+{% else %}
+  <p>No hay mascotas registradas.</p>
+{% endif %}
 {% endblock %}
