@@ -382,6 +382,11 @@ button:hover {
   padding: 20px;
 }
 
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 
 /* Responsive para pantallas pequeñas */
 @media (max-width: 600px) {

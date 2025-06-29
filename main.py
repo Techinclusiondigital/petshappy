@@ -188,7 +188,6 @@ def registrar():
             duenio=request.form["duenio"],
             telefono=request.form["telefono"],
             caracter=request.form["caracter"],
-            tipo_corte=request.form["tipo_corte"],
             precio=request.form.get("precio") or 0,
             foto_antes=filename_antes,
             foto_despues=filename_despues,
