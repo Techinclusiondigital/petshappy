@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 import smtplib
 from itsdangerous import URLSafeTimedSerializer
 from flask import url_for
+from sqlalchemy import text
 
 def requiere_suscripcion(f):
     @wraps(f)
@@ -52,6 +53,14 @@ PDFKIT_CONFIG = pdfkit.configuration(wkhtmltopdf=os.environ.get("WKHTMLTOPDF_PAT
 
 
 db = SQLAlchemy(app)
+try:
+    with app.app_context():
+        print("✅ Probando conexión a la base de datos...")
+        db.session.execute(text("SELECT 1"))
+        print("✅ Conexión exitosa")
+except Exception as e:
+    print("❌ Error de conexión a la base de datos:", e)
+
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
@@ -59,7 +68,7 @@ class Usuario(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     nombre_usuario = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(300), nullable=False)
     fecha_alta = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     subscripcion_id = db.Column(db.String(100), nullable=True)
     nombre_empresa = db.Column(db.String(150))
@@ -699,62 +708,49 @@ def arqueo_pdf():
     response.headers['Content-Disposition'] = 'inline; filename=arqueo.pdf'
     return response
 
-@app.route("/registro", methods=["GET", "POST"], endpoint='registro')
+@app.route("/registro", methods=["GET", "POST"])
 def registro():
     if request.method == "POST":
-        nombre = request.form["nombre_usuario"]
-        email = request.form["email"]
-        password = request.form["password"]
-        nombre_empresa = request.form["nombre_empresa"]
-        direccion = request.form["direccion"]
-        cif = request.form["cif"]
-        telefono = request.form["telefono"]
-        codigo_postal = request.form["codigo_postal"]
+        try:
+            nombre = request.form["nombre_usuario"]
+            email = request.form["email"]
+            password = request.form["password"]
+            nombre_empresa = request.form["nombre_empresa"]
+            direccion = request.form["direccion"]
+            cif = request.form["cif"]
+            telefono = request.form["telefono"]
+            codigo_postal = request.form["codigo_postal"]
 
-        if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
-            flash("⚠️ El usuario o email ya está registrado.")
+            if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
+                flash("⚠️ El usuario o email ya está registrado.")
+                return redirect("/registro")
+
+            nuevo = Usuario(
+                nombre_usuario=nombre,
+                email=email,
+                nombre_empresa=nombre_empresa,
+                direccion=direccion,
+                cif=cif,
+                telefono=telefono,
+                codigo_postal=codigo_postal
+            )
+            nuevo.set_password(password)
+            nuevo.fecha_alta = datetime.now(timezone.utc)
+            db.session.add(nuevo)
+            db.session.commit()
+
+            enviar_email(...)  # Aquí mantienes tu lógica de correo
+
+            flash("✅ Registro exitoso. ¡Bienvenido!")
+            login_user(nuevo)  # ✅ Autologin
+            return redirect("/dashboard")
+
+        except Exception as e:
+            print("❌ Error al registrar usuario:", e)
+            flash("❌ Ocurrió un error al registrar. Revisa los datos.")
             return redirect("/registro")
 
-        nuevo = Usuario(
-            nombre_usuario=nombre,
-            email=email,
-            nombre_empresa=nombre_empresa,
-            direccion=direccion,
-            cif=cif,
-            telefono=telefono,
-            codigo_postal=codigo_postal
-        )
-        nuevo.set_password(password)
-        nuevo.fecha_alta = datetime.utcnow().date()
-        db.session.add(nuevo)
-        db.session.commit()
-
-        # ✅ Enviar correo al administrador
-        admin_msg = f"""
-        <h2>📥 Nuevo registro</h2>
-        <p><strong>Empresa:</strong> {nombre_empresa}</p>
-        <p><strong>Dirección:</strong> {direccion}</p>
-        <p><strong>Usuario:</strong> {nombre}</p>
-        <p><strong>Email:</strong> {email}</p>
-        """
-        enviar_email("techinclusiondigital@gmail.com", "📬 Nuevo registro en Petshappy", admin_msg)
-
-        # ✅ Enviar correo de bienvenida al usuario
-        user_msg = f"""
-        <h2>🎉 Bienvenido a Petshappy</h2>
-        <p>Hola {nombre}, gracias por registrarte.</p>
-        <p>Tu empresa <strong>{nombre_empresa}</strong> ya puede comenzar a usar el sistema de gestión de peluquería canina.</p>
-        <p>Recuerda que tienes 1 mes de prueba gratuito.</p>
-        <br>
-        <p>Si tienes dudas, contáctanos: techinclusiondigital@gmail.com</p>
-        """
-        enviar_email(email, "🎉 Bienvenido a Petshappy", user_msg)
-
-        login_user(nuevo)
-        return redirect("/dashboard")
-
     return render_template("registro.html")
-
 
 
 from flask import flash
