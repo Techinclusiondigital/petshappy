@@ -36,7 +36,7 @@ def requiere_suscripcion(f):
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///peluqueria.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://tpv_peluqueria_db_user:D368Z6HYZEuiyYZamD7rZrNhBhtLXdsh@dpg-d1mloiu3jp1c73dr6smg-a.oregon-postgres.render.com/tpv_peluqueria_db'
 app.secret_key = "tu_clave_secreta"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/fotos'
@@ -148,6 +148,13 @@ class Cita(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     usuario = db.relationship("Usuario", backref="citas")
     mascota = db.relationship("Mascota", backref="citas")
+
+class Pedido(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), nullable=False)
+    comprado = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))  # si quieres que cada usuario tenga los suyos
+
 
 # RUTAS
 from flask_login import current_user
@@ -461,6 +468,51 @@ def dia_semana_espanol(fecha):
     dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
     return dias[fecha.weekday()]
 
+@app.route("/pedidos", methods=["GET", "POST"])
+@login_required
+def pedidos():
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        if nombre:
+            nuevo = Pedido(nombre=nombre, user_id=current_user.id)
+            db.session.add(nuevo)
+            db.session.commit()
+        return redirect("/pedidos")
+
+    lista = Pedido.query.filter_by(user_id=current_user.id).order_by(Pedido.comprado, Pedido.nombre).all()
+    return render_template("pedidos.html", pedidos=lista)
+
+@app.route("/pedido/<int:id>/toggle", methods=["POST"])
+@login_required
+def marcar_comprado(id):
+    pedido = Pedido.query.get_or_404(id)
+    pedido.comprado = not pedido.comprado
+    db.session.commit()
+    return redirect("/pedidos")
+
+@app.route("/pedido/<int:id>/eliminar", methods=["POST"])
+@login_required
+def eliminar_pedido(id):
+    pedido = Pedido.query.get_or_404(id)
+    db.session.delete(pedido)
+    db.session.commit()
+    return redirect("/pedidos")
+
+@app.route("/tutoriales")
+@login_required
+def tutoriales():
+    return render_template("tutoriales.html")
+
+
+@app.route("/api/tutoriales")
+@login_required
+def api_tutoriales():
+    tutoriales = [
+        {"raza": "Caniche corte comercial", "url": "https://www.youtube.com/embed/jlvbZWlhUmk"},
+        {"raza": "Schnauzer clásico", "url": "https://www.youtube.com/embed/8zvNxEjPH6A"},
+        {"raza": "Yorkshire corte cachorro", "url": "https://www.youtube.com/embed/Nv02texIsb8"},
+    ]
+    return jsonify(tutoriales)
 
 
 @app.route("/agenda")

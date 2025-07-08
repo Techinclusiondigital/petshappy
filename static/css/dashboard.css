@@ -12,12 +12,13 @@ header h1 {
     margin: 0;
 }
 .bienvenido {
-      font-family: "Quicksand", sans-serif;
-  font-weight: 900; 
-    padding: 20px;
-    color: white;
-    font-size: 36px;
+  margin-top: 10px;
+  font-family: 'Quicksand', sans-serif;
+   font-size: 1.8rem !important;
+  font-weight: bold;
+  color: white;
 }
+
 h4 {
 color: #949ca4;
 }
@@ -138,9 +139,222 @@ a:hover {
 }
 
 .ocupado {
-    color: red;
+    color: black;
     font-weight: bold;
 }
+.bloque-horario.ocupado {
+  color: #000; /* texto en negro */
+}
+.nombre-mascota {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #000;
+}
+.buscador-wrapper {
+  position: relative;
+  max-width: 400px;
+  margin-bottom: 2rem;
+}
+
+#sugerencias {
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+  border: 1px solid #ccc;
+  border-top: none;
+  background-color: #fff;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  display: none;
+}
+
+.sugerencia-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sugerencia-item:hover {
+  background-color: #f0f0f0;
+}
+
+#video-container {
+  width: 50%;
+  margin: 0 auto;
+}
+
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  margin-top: 1rem;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tutorial-title {
+  margin-top: 2rem;
+  font-size: 1.3rem;
+  color: #333;
+  text-align: center;
+}
+
+.contenedor-central {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Estilo general del segundo menú */
+.submenu {
+    background-color: #f5f5f5;
+    padding: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sub-menu {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sub-menu li a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #343c4a;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s, font-size 0.3s;
+}
+
+.sub-menu li a:hover {
+    background-color: #e0e0e0;
+    font-size: 17px;
+}
+
+/* Responsive para el segundo menú */
+@media (max-width: 768px) {
+    .sub-menu {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+}
+
+.nav-video {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.menu-video {
+  height: 40px;
+  width: auto;
+ 
+  transition: transform 0.3s;
+}
+
+.menu-video:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .menu-video {
+    height: 30px;
+  }
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 🐶 Caniche */
+.logo-caniche-video {
+  height: 140px;
+  width: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* 👋 Bienvenida */
+.bienvenido {
+  margin-top: 15px;
+  font-size: 2.5rem;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 📦 y 🎥 contenedor */
+.iconos-laterales {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 30px;
+  box-sizing: border-box;
+}
+
+/* Iconos individuales */
+.icono-lateral img {
+  height: 100px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.icono-lateral img:hover {
+  transform: scale(1.55);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo-caniche-video {
+    height: 100px;
+  }
+
+  .bienvenido {
+    font-size: 1.8rem;
+  }
+
+  .iconos-laterales {
+    flex-direction: column;
+    gap: 15px;
+    padding: 0;
+  }
+
+  .icono-lateral img {
+    height: 80px;
+  }
+}
+
+
+
+
+h4 {
+  margin-top: 2rem;
+  font-size: 1.3rem;
+  color: #333;
+  }
 
 .inline {
     display: inline-block;
@@ -462,3 +676,109 @@ width: 80%;
     margin: auto;
   }
 }
+.titulo-pedidos {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.form-pedido {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.form-pedido input[type="text"] {
+  padding: 10px;
+  width: 300px;
+  max-width: 90%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.form-pedido button {
+  padding: 10px 15px;
+  background-color: #00b36b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.form-pedido button:hover {
+  background-color: #007a4d;
+}
+
+.lista-pedidos {
+  list-style: none;
+  padding: 0;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.pedido-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.pedido-item.comprado .pedido-nombre {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.pedido-nombre {
+  flex: 1;
+  margin: 0 10px;
+  font-size: 1rem;
+}
+
+.form-toggle,
+.form-eliminar {
+  display: inline;
+}
+
+.btn-toggle,
+.btn-eliminar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.btn-eliminar {
+  color: red;
+}
+
+.volver-inicio {
+  display: block;
+  text-align: center;
+  margin-top: 2rem;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.volver-inicio:hover {
+  text-decoration: underline;
+}
+
+/* ✅ Responsive */
+@media (max-width: 500px) {
+  .pedido-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pedido-nombre {
+    margin: 10px 0;
+  }
+}
+

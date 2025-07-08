@@ -39,9 +39,11 @@
           <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="bloque-libre">{{ bloque.texto }}</a>
         {% else %}
           <strong>{{ bloque.hora }}</strong>
-          <a href="/mascota/{{ bloque.mascota.id }}" class="text-danger fw-bold">
-            {{ bloque.mascota.nombre }}
-          </a>
+         <a href="/mascota/{{ bloque.mascota.id }}" class="fw-bold nombre-mascota">
+  {{ bloque.mascota.nombre }}
+</a>
+
+      
           - {{ bloque.tipo_servicio or "Sin servicio" }}
 
           {% if bloque.cita_id %}

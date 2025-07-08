@@ -62,7 +62,7 @@ header {
         
 
 .logo-caniche {
-    height: 140px; /* ajusta según necesites */
+    height: 160px; /* ajusta según necesites */
     width: auto;
 }
 
@@ -113,7 +113,7 @@ header {
         }
 
         .ocupado {
-            color: red;
+            color: black;
             font-weight: bold;
         }
 
@@ -128,12 +128,31 @@ header {
 </head>
 <body>
 
-    <header>
-        <div class="color-content">
-         <div class="header-content">
-        <img src="{{ url_for('static', filename='img/caniche.png') }}" alt="Caniche" class="logo-caniche">
-        <h1 class="bienvenido">Bienvenid@ a HappyPets, {{ current_user.nombre_usuario }}</h1>
+   <header>
+  <div class="color-content">
+    <div class="header-content">
+      
+      <!-- 🐶 Caniche animado centrado -->
+      <img src="{{ url_for('static', filename='video/westy.gif') }}" alt="Caniche animado" class="logo-caniche-video">
+
+      <!-- 👋 Bienvenida -->
+      <h1 class="bienvenido">Bienvenid@ a HappyPets, {{ current_user.nombre_usuario }}</h1>
+
+      <!-- 📦 y 🎥 Pedidos / Tutoriales -->
+      <div class="iconos-laterales">
+        <a href="/pedidos" class="icono-lateral izquierda">
+          <img src="{{ url_for('static', filename='video/PEDIDOS.gif') }}" alt="Pedidos">
+        </a>
+        <a href="/tutoriales" class="icono-lateral derecha">
+          <img src="{{ url_for('static', filename='video/TUTORIALES.gif') }}" alt="Tutoriales">
+        </a>
+      </div>
+
     </div>
+  
+
+
+ 
     
 
    <!-- Menú responsive -->
@@ -150,6 +169,7 @@ header {
     </ul>
 </nav>
 </div>
+
     </header>
     <main>
         {% block content %}
