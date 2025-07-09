@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-form-container">
+  <h2>✏️ Editar Usuario</h2>
+
+  <form method="POST">
+    <label>Nombre de usuario</label>
+    <input type="text" name="nombre_usuario" value="{{ usuario.nombre_usuario }}" required>
+
+    <label>Email</label>
+    <input type="email" name="email" value="{{ usuario.email }}" required>
+
+    <label>Teléfono</label>
+    <input type="text" name="telefono" value="{{ usuario.telefono }}">
+
+    <label>Dirección</label>
+    <input type="text" name="direccion" value="{{ usuario.direccion }}">
+
+    <label>Nombre de empresa</label>
+    <input type="text" name="nombre_empresa" value="{{ usuario.nombre_empresa }}">
+
+    <label>CIF</label>
+    <input type="text" name="cif" value="{{ usuario.cif }}">
+
+    <label>Código postal</label>
+    <input type="text" name="codigo_postal" value="{{ usuario.codigo_postal }}">
+
+    <button type="submit">💾 Guardar cambios</button>
+  </form>
+
+  <a href="/admin/usuarios" class="volver-link">← Volver al panel de usuarios</a>
+</div>
+{% endblock %}

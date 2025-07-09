@@ -10,3 +10,17 @@
      background-color: #bbbbbb;
 
 }
+.boton-registro {
+  display: inline-block;
+  background-color: #a3a8a6;
+  color: white;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.boton-registro:hover {
+  background-color: #757c79;
+}

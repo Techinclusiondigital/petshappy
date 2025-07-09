@@ -13,7 +13,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+        
         }
 
         .registro-container {
@@ -21,13 +21,14 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 400px;
             width: 90%;
+            max-width: 400px;
             text-align: center;
+
         }
 
         .registro-container img {
-            width: 100px;
+            width: 150px;
             margin-bottom: 20px;
         }
 
@@ -81,11 +82,31 @@
         a:hover {
             text-decoration: underline;
         }
+
+        .alerta {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
     </style>
 </head>
 <body>
 
 <div class="registro-container">
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alerta">
+      {% for msg in messages %}
+        <p>{{ msg }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
     <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Petshappy">
     <h1>Crear cuenta</h1>
  <form method="POST">
@@ -98,12 +119,17 @@
     <input type="text" name="nombre_usuario" placeholder="Nombre de usuario" required>
     <input type="email" name="email" placeholder="Correo electrónico" required>
     <input type="password" name="password" placeholder="Contraseña" required>
+  <div style="text-align: center; margin: 1rem 0;">
+  <div class="g-recaptcha" data-sitekey="6LfjNX0rAAAAAItByxeI2wODKOKIEVjD1YLdCXKW"></div>
+</div>
+
 
     <button type="submit">Registrarse</button>
 </form>
   
     <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
 </div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 </body>
 </html>

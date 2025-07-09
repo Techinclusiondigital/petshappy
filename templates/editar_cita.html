@@ -3,42 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <title>Editar Cita</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f3f3f3;
+        padding: 20px;
+        margin: 0;
+      }
+
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      form {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 500px;
+        margin: auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 15px;
+        color: #333;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="date"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        margin-top: 5px;
+        border-radius: 6px;
+        box-sizing: border-box;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      button {
+        margin-top: 20px;
+        padding: 12px 20px;
+        background-color: #00a86b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+      }
+
+      button:hover {
+        background-color: #008456;
+      }
+
+      .links {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .links a {
+        text-decoration: none;
+        color: #00a86b;
+        margin: 0 10px;
+        font-weight: bold;
+      }
+
+      .links a:hover {
+        text-decoration: underline;
+      }
+    </style>
 </head>
 <body>
     <h1>Editar Cita de {{ cita.mascota.nombre }} 🐾</h1>
 
     <form method="POST">
-        <!-- Campo oculto para enviar la fecha y hora -->
         <input type="hidden" name="fecha" value="{{ cita.fecha }}">
         <input type="hidden" name="hora" value="{{ cita.hora.strftime('%H:%M') }}">
-    
-        <label>Fecha:</label><br>
-        <input type="date" name="fecha" value="{{ fecha }}"><br><br>
-        
+
+        <label>Fecha:</label>
+        <input type="date" name="fecha" value="{{ fecha }}">
+
         <label>Hora:</label>
-        <input type="text" value="{{ cita.hora.strftime('%H:%M') }}" disabled><br><br>
-    
-        <label>Precio:</label>
-        <input type="number" name="precio" value="{{ cita.precio or 0 }}" step="0.01" required><br><br>
-    
+        <input type="text" value="{{ cita.hora.strftime('%H:%M') }}" disabled>
+
+        <label>Precio (€):</label>
+        <input type="number" name="precio" value="{{ cita.precio or 0 }}" step="0.01" required>
+
         <label>Método de pago:</label>
         <select name="metodo_pago">
             <option value="">-- Seleccionar --</option>
             <option value="efectivo" {% if cita.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
             <option value="tarjeta" {% if cita.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
             <option value="no_pagado" {% if cita.metodo_pago == 'no_pagado' or not cita.metodo_pago %}selected{% endif %}>❌ No pagado</option>
-        </select><br><br>
-    
-        <label>Notas:</label><br>
-        <textarea name="notas" rows="4" cols="40">{{ cita.notas }}</textarea><br><br>
-    
+        </select>
+
+        <label>Notas:</label>
+        <textarea name="notas" rows="4">{{ cita.notas }}</textarea>
+
         <button type="submit">💾 Guardar cambios</button>
     </form>
-    
 
-    <br>
-    <a href="/agenda">← Volver a la agenda</a> |
-    <a href="/ficha/{{ cita.mascota.id }}">Ficha de {{ cita.mascota.nombre }}</a>
+    <div class="links">
+      <a href="/agenda">← Volver a la agenda</a> |
+      <a href="/ficha/{{ cita.mascota.id }}">Ficha de {{ cita.mascota.nombre }}</a>
+    </div>
 </body>
 </html>
 

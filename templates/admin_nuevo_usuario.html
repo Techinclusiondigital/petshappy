@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-form-container">
+  <h2>➕ Registrar Nuevo Usuario</h2>
+
+  <form method="POST">
+    <label>Nombre de usuario</label>
+    <input type="text" name="nombre_usuario" required>
+
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>Contraseña</label>
+    <input type="password" name="password" required>
+
+    <label>Teléfono</label>
+    <input type="text" name="telefono">
+
+    <label>Dirección</label>
+    <input type="text" name="direccion">
+
+    <label>Nombre de empresa</label>
+    <input type="text" name="nombre_empresa">
+
+    <label>CIF</label>
+    <input type="text" name="cif">
+
+    <label>Código postal</label>
+    <input type="text" name="codigo_postal">
+
+    <button type="submit">✅ Crear usuario</button>
+  </form>
+
+  <a href="/admin/usuarios" class="volver-link">← Volver al panel de usuarios</a>
+</div>
+{% endblock %}

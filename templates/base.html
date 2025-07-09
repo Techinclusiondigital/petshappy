@@ -137,7 +137,10 @@ header {
 
       <!-- 👋 Bienvenida -->
       <h1 class="bienvenido">Bienvenid@ a HappyPets, {{ current_user.nombre_usuario }}</h1>
+     
 
+{% if not ocultar_menu %}
+{% if not request.path.startswith('/admin') %}
       <!-- 📦 y 🎥 Pedidos / Tutoriales -->
       <div class="iconos-laterales">
         <a href="/pedidos" class="icono-lateral izquierda">
@@ -168,6 +171,9 @@ header {
         <li><strong><a href="/logout">Cerrar sesión</a></strong></li>
     </ul>
 </nav>
+ <button onclick="mostrarContacto()" class="btn-consultas">Consultas e Incidencias</button>
+{% endif %}
+{% endif %}
 </div>
 
     </header>
@@ -187,6 +193,11 @@ header {
 {% block scripts %}
 <!-- Aquí irán scripts adicionales desde las páginas hijas -->
 {% endblock %}
+<script>
+  function mostrarContacto() {
+    alert("📧 Email: techinclusiondigital@gmail.com\n📞 Teléfono: +34 641 75 2417");
+  }
+</script>
 
 </body>
 </html>

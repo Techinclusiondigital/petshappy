@@ -1,0 +1,40 @@
+<!-- admin_usuarios.html -->
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; margin-bottom: 1rem;">
+  <a href="/logout" class="boton-salir">Cerrar sesión</a>
+</div>
+<h1>👥 Panel de Administración de Usuarios</h1>
+
+
+<a href="/admin/usuarios/nuevo" class="boton">➕ Crear nuevo usuario</a>
+
+<table class="tabla">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Usuario</th>
+      <th>Email</th>
+      <th>Empresa</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in usuarios %}
+    <tr>
+      <td>{{ user.id }}</td>
+      <td>{{ user.nombre_usuario }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.nombre_empresa or '' }}</td>
+      <td>
+        <a href="/admin/usuarios/{{ user.id }}/editar">✏️ Editar</a>
+        <form method="POST" action="/admin/usuarios/{{ user.id }}/eliminar" style="display:inline" onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
+          <button type="submit">🗑️</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
+import requests
 from collections import defaultdict
 from datetime import datetime, timedelta
 from flask import make_response
@@ -344,6 +345,10 @@ def enviar_email(destinatario, asunto, contenido_html):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(remitente, password)
         server.sendmail(remitente, destinatario, msg.as_string())
+
+@app.route("/politica")
+def politica():
+    return render_template("politica.html", ocultar_menu=True)
 
 @app.route("/mascotas")
 @login_required
@@ -708,10 +713,33 @@ def arqueo_pdf():
     response.headers['Content-Disposition'] = 'inline; filename=arqueo.pdf'
     return response
 
+
+
+RECAPTCHA_SECRET_KEY = "6LfjNX0rAAAAAHnB0abPdA9WOZoyFT-e6wW0xJlu"
+
 @app.route("/registro", methods=["GET", "POST"])
 def registro():
     if request.method == "POST":
+        # Validación de reCAPTCHA
+        captcha_respuesta = request.form.get("g-recaptcha-response")
+        if not captcha_respuesta:
+            flash("❌ Verifica que no eres un robot.")
+            return redirect("/registro")
+
+        validacion = requests.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": RECAPTCHA_SECRET_KEY,
+                "response": captcha_respuesta
+            }
+        ).json()
+
+        if not validacion.get("success"):
+            flash("❌ reCAPTCHA no válido. Inténtalo de nuevo.")
+            return redirect("/registro")
+
         try:
+            # Datos del formulario
             nombre = request.form["nombre_usuario"]
             email = request.form["email"]
             password = request.form["password"]
@@ -721,10 +749,13 @@ def registro():
             telefono = request.form["telefono"]
             codigo_postal = request.form["codigo_postal"]
 
+            # Verificar si ya existe el usuario o email
             if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
-                flash("⚠️ El usuario o email ya está registrado.")
-                return redirect("/registro")
+             flash("⚠️ El usuario o el correo ya están registrados. Inicia sesión.", "warning")
+             return redirect("/login")
 
+
+            # Crear nuevo usuario
             nuevo = Usuario(
                 nombre_usuario=nombre,
                 email=email,
@@ -736,13 +767,36 @@ def registro():
             )
             nuevo.set_password(password)
             nuevo.fecha_alta = datetime.now(timezone.utc)
+
             db.session.add(nuevo)
             db.session.commit()
 
-            enviar_email(...)  # Aquí mantienes tu lógica de correo
+            # ✅ Enviar correo al administrador
+            admin_msg = f"""
+            <h2>📥 Nuevo registro en HappyPets</h2>
+            <p><strong>Empresa:</strong> {nombre_empresa}</p>
+            <p><strong>Usuario:</strong> {nombre}</p>
+            <p><strong>Email:</strong> {email}</p>
+            <p><strong>Dirección:</strong> {direccion}</p>
+            <p><strong>Código Postal:</strong> {codigo_postal}</p>
+            <p><strong>Teléfono:</strong> {telefono}</p>
+            """
+            enviar_email("techinclusiondigital@gmail.com", "📬 Nuevo registro en HappyPets", admin_msg)
 
+            # ✅ Enviar correo de bienvenida al usuario
+            user_msg = f"""
+            <h2>🎉 Bienvenido a HappyPets</h2>
+            <p>Hola <strong>{nombre}</strong>, gracias por registrarte.</p>
+            <p>Tu empresa <strong>{nombre_empresa}</strong> ya puede comenzar a usar el sistema de gestión de peluquería canina.</p>
+            <p>Recuerda que tienes 1 mes de prueba gratuito.</p>
+            <br>
+            <p>Si tienes dudas, contáctanos en: techinclusiondigital@gmail.com</p>
+            """
+            enviar_email(email, "🎉 Bienvenido a HappyPets", user_msg)
+
+            # Login automático y redirección
+            login_user(nuevo)
             flash("✅ Registro exitoso. ¡Bienvenido!")
-            login_user(nuevo)  # ✅ Autologin
             return redirect("/dashboard")
 
         except Exception as e:
@@ -754,6 +808,18 @@ def registro():
 
 
 from flask import flash
+from functools import wraps
+from flask import abort
+from flask_login import current_user
+
+def solo_admin(f):
+    @wraps(f)
+    def decorador(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.email != "techinclusiondigital@gmail.com":
+            abort(403)  # Prohibido
+        return f(*args, **kwargs)
+    return decorador
+
 
 @app.route("/login", methods=["GET", "POST"], endpoint='login')
 def login():
@@ -770,11 +836,98 @@ def login():
             flash("⚠️ Tu periodo de prueba ha caducado. Por favor, activa tu cuenta.")
             return redirect("/pago")
 
-        login_user(user)
-        return redirect("/dashboard")
+        login_user(user)  # ✅ Primero logueamos al usuario
+
+        # ✅ Ahora ya puedes usar user.email (no current_user aún)
+        if user.email == "techinclusiondigital@gmail.com":
+            return redirect("/admin/usuarios")
+        else:
+            return redirect("/dashboard")
 
     return render_template("login.html")
 
+from flask import abort
+
+@app.route("/admin/usuarios", methods=["GET", "POST"])
+@login_required
+def administrar_usuarios():
+    # Solo el admin puede ver esta página
+    if current_user.email != "techinclusiondigital@gmail.com":
+        abort(403)
+
+    q = request.args.get("q", "").lower()
+    if q:
+        usuarios = Usuario.query.filter(
+            (Usuario.nombre_usuario.ilike(f"%{q}%")) | (Usuario.email.ilike(f"%{q}%"))
+        ).all()
+    else:
+        usuarios = Usuario.query.all()
+
+    return render_template("admin_usuarios.html", usuarios=usuarios)
+
+@app.route("/admin/usuario/<int:usuario_id>/eliminar", methods=["POST"])
+@login_required
+def eliminar_usuario(usuario_id):
+    if current_user.email != "techinclusiondigital@gmail.com":
+        abort(403)
+
+    usuario = Usuario.query.get_or_404(usuario_id)
+    db.session.delete(usuario)
+    db.session.commit()
+    flash("✅ Usuario eliminado correctamente.")
+    return redirect("/admin/usuarios")
+
+@app.route("/admin/usuarios/<int:id>/editar", methods=["GET", "POST"])
+@login_required
+@solo_admin
+def editar_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    if request.method == "POST":
+        usuario.nombre_usuario = request.form["nombre_usuario"]
+        usuario.email = request.form["email"]
+        usuario.nombre_empresa = request.form["nombre_empresa"]
+        usuario.telefono = request.form["telefono"]
+        usuario.direccion = request.form["direccion"]
+        usuario.codigo_postal = request.form["codigo_postal"]
+        db.session.commit()
+        flash("✅ Usuario actualizado correctamente")
+        return redirect("/admin/usuarios")
+    return render_template("admin_editar_usuario.html", usuario=usuario)
+
+@app.route("/admin/usuarios/nuevo", methods=["GET", "POST"])
+@login_required
+@solo_admin
+def nuevo_usuario():
+    if request.method == "POST":
+        nombre = request.form["nombre_usuario"]
+        email = request.form["email"]
+        password = request.form["password"]
+        nombre_empresa = request.form["nombre_empresa"]
+
+        if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
+            flash("⚠️ Usuario o email ya existente.")
+            return redirect("/admin/usuarios/nuevo")
+
+        nuevo = Usuario(
+            nombre_usuario=nombre,
+            email=email,
+            nombre_empresa=nombre_empresa,
+            fecha_alta=datetime.now(timezone.utc)
+        )
+        nuevo.set_password(password)
+        db.session.add(nuevo)
+        db.session.commit()
+        flash("✅ Usuario creado correctamente.")
+        return redirect("/admin/usuarios")
+
+    return render_template("admin_nuevo_usuario.html")
+
+@app.route("/admin/usuarios")
+@login_required
+@solo_admin
+def admin_usuarios():
+    usuarios = Usuario.query.all()
+    return render_template("admin_usuarios.html", usuarios=usuarios)
 
 @app.route("/pago")
 def pago():
