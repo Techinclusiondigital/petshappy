@@ -904,7 +904,7 @@ def administrar_usuarios():
 
     return render_template("admin_usuarios.html", usuarios=usuarios)
 
-@app.route("/admin/usuario/<int:usuario_id>/eliminar", methods=["POST"])
+@app.route("/admin/usuarios/<int:usuario_id>/eliminar", methods=["POST"])
 @login_required
 def eliminar_usuario(usuario_id):
     if current_user.email != "techinclusiondigital@gmail.com":
