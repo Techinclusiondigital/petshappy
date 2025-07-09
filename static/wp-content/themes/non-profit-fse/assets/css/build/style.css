@@ -61,3 +61,17 @@
   background-color: #0077cc;
 }
 
+.ideal {
+    text-align: center;
+}
+
+.wp-block-list {
+ margin-left: 30%;
+ margin-right: 20%;
+}
+.justificado {
+    text-align: center;
+    text-indent: 2.5em;
+    margin-right: 20%;
+    margin-left: 20%;
+}
