@@ -528,6 +528,45 @@ def api_tutoriales():
     ]
     return jsonify(tutoriales)
 
+RECAPTCHA_SECRET_KEY = "6LfjNX0rAAAAAHnB0abPdA9WOZoyFT-e6wW0xJlu"
+
+@app.route("/contacto", methods=["POST"])
+def contacto():
+    # Verificación reCAPTCHA
+    captcha_respuesta = request.form.get("g-recaptcha-response")
+    if not captcha_respuesta:
+        flash("❌ Verifica que no eres un robot.")
+        return redirect("/")
+
+    validacion = requests.post(
+        "https://www.google.com/recaptcha/api/siteverify",
+        data={
+            "secret": RECAPTCHA_SECRET_KEY,
+            "response": captcha_respuesta
+        }
+    ).json()
+
+    if not validacion.get("success"):
+        flash("❌ reCAPTCHA no válido. Inténtalo de nuevo.")
+        return redirect("/")
+
+    # Si pasó reCAPTCHA, procesamos mensaje
+    nombre = request.form["nombre"]
+    email = request.form["email"]
+    mensaje = request.form["mensaje"]
+
+    contenido = f"""
+    <h3>📩 Nuevo mensaje desde el formulario de contacto</h3>
+    <p><strong>Nombre:</strong> {nombre}</p>
+    <p><strong>Email:</strong> {email}</p>
+    <p><strong>Mensaje:</strong><br>{mensaje}</p>
+    """
+    enviar_email("techinclusiondigital@gmail.com", "📬 Nuevo mensaje de contacto", contenido)
+
+    flash("✅ ¡Mensaje enviado correctamente!")
+    return redirect("/")
+
+
 
 @app.route("/agenda")
 @login_required

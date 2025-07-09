@@ -225,6 +225,16 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15
 
 
 <hr class="wp-block-separator has-alpha-channel-opacity">
+<section id="contacto" class="formulario-contacto">
+  <h2>📬 ¿Tienes dudas o quieres contactar?</h2>
+  <form method="POST" action="/contacto">
+    <input type="text" name="nombre" placeholder="Tu nombre" required>
+    <input type="email" name="email" placeholder="Tu email" required>
+    <textarea name="mensaje" rows="5" placeholder="Escribe tu mensaje..." required></textarea>
+	<div class="g-recaptcha" data-sitekey="6LfjNX0rAAAAAItByxeI2wODKOKIEVjD1YLdCXKW"></div>
+    <button type="submit">Enviar</button>
+  </form>
+</section>
 
 
 
@@ -302,5 +312,7 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15
 		// Inject the skip link.
 		sibling.parentElement.insertBefore( skipLink, sibling );
 	}() );</script>
+
+	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>

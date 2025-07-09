@@ -24,3 +24,40 @@
 .boton-registro:hover {
   background-color: #757c79;
 }
+
+.formulario-contacto {
+  background: #f9f9f9;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.formulario-contacto h2 {
+  margin-bottom: 1rem;
+}
+
+.formulario-contacto input,
+.formulario-contacto textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.formulario-contacto button {
+  background-color: #00aaff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.formulario-contacto button:hover {
+  background-color: #0077cc;
+}
+
