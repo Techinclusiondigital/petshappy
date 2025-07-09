@@ -873,13 +873,14 @@ def login():
             flash("❌ Usuario o contraseña incorrectos")
             return redirect("/login")
 
-        if not user.en_periodo_prueba():
+        # ✅ Excluir al admin del chequeo de periodo de prueba
+        if user.email != "techinclusiondigital@gmail.com" and not user.en_periodo_prueba():
             flash("⚠️ Tu periodo de prueba ha caducado. Por favor, activa tu cuenta.")
             return redirect("/pago")
 
-        login_user(user)  # ✅ Primero logueamos al usuario
+        login_user(user)
 
-        # ✅ Ahora ya puedes usar user.email (no current_user aún)
+        # ✅ Redirigir según tipo de usuario
         if user.email == "techinclusiondigital@gmail.com":
             return redirect("/admin/usuarios")
         else:
