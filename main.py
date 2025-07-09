@@ -87,15 +87,17 @@ class Usuario(db.Model, UserMixin):
 
 
     def en_periodo_prueba(self):
-        ahora = datetime.now(timezone.utc)
+        #ahora = datetime.now(timezone.utc)
 
-        if self.fecha_alta.tzinfo is None:
-            fecha_alta = self.fecha_alta.replace(tzinfo=timezone.utc)
-        else:
-            fecha_alta = self.fecha_alta
+        #if self.fecha_alta.tzinfo is None:
+            #fecha_alta = self.fecha_alta.replace(tzinfo=timezone.utc)
+        #else:
+           # fecha_alta = self.fecha_alta
 
-        return ahora <= fecha_alta + timedelta(days=30)
- 
+        #return ahora <= fecha_alta + timedelta(days=30)
+
+     return False  # Fuerza a que siempre termine el periodo de prueba
+
 
 import smtplib
 from email.mime.text import MIMEText

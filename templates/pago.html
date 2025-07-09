@@ -4,28 +4,31 @@
     <h1>🛒 Activar Suscripción</h1>
     <p>Tu prueba gratuita ha finalizado. Activa tu cuenta para continuar usando Petshappy.</p>
 
-  <div id="paypal-button-container-P-0YP52904YG949224RNAY3BJY" class="paypal-center" style=" display: flex;
-    justify-content: center; margin-top: 1em; max-width: 400px; width: 100%; margin: auto; text-align: center;">
+ 
 
+<div style="display: flex; justify-content: center; margin-top: 2rem;">
+  <div id="paypal-button-container-P-6UR21230E5812202YNBXJP7A" style="width: 50%;"></div>
+</div>
+<br><br>
+<script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+  paypal.Buttons({
+      style: {
+          shape: 'pill',
+          color: 'blue',
+          layout: 'horizontal',
+          label: 'subscribe',
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          plan_id: 'P-6UR21230E5812202YNBXJP7A'
+        });
+      },
+      onApprove: function(data, actions) {
+        alert("¡Gracias por suscribirte! ID: " + data.subscriptionID);
+        // Aquí puedes redirigir al dashboard o guardar el ID en tu base de datos con fetch/AJAX
+      }
+  }).render('#paypal-button-container-P-6UR21230E5812202YNBXJP7A');
+</script>
 
-    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
-    <script>
-      paypal.Buttons({
-          style: {
-              shape: 'rect',
-              color: 'gold',
-              layout: 'vertical',
-              label: 'subscribe'
-          },
-          createSubscription: function(data, actions) {
-            return actions.subscription.create({
-              plan_id: 'P-0YP52904YG949224RNAY3BJY'
-            });
-          },
-          onApprove: function(data, actions) {
-            alert('✅ Suscripción activada. ID: ' + data.subscriptionID);
-            window.location.href = "/suscripcion_exitosa?subscription_id=" + data.subscriptionID;
-          }
-      }).render('#paypal-button-container-P-0YP52904YG949224RNAY3BJY');
-    </script>
 {% endblock %}
