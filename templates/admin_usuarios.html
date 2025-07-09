@@ -28,8 +28,10 @@
       <td>{{ user.nombre_empresa or '' }}</td>
       <td>
         <a href="/admin/usuarios/{{ user.id }}/editar">✏️ Editar</a>
-        <form method="POST" action="/admin/usuarios/{{ user.id }}/eliminar" style="display:inline" onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
-          <button type="submit">🗑️</button>
+       <form method="POST" action="/admin/usuarios/{{ user.id }}/eliminar" onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
+  <button type="submit">🗑️</button>
+</form>
+
         </form>
       </td>
     </tr>
