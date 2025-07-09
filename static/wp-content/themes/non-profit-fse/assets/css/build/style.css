@@ -75,3 +75,16 @@
     margin-right: 20%;
     margin-left: 20%;
 }
+@media (max-width: 600px) {
+  .ideal {
+    text-align: justify;
+}
+
+.wp-block-list {
+ margin: auto;
+}
+.justificado {
+    text-align: justify;
+margin: auto;
+} 
+} 
