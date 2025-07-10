@@ -9,21 +9,26 @@
 
 <ul class="lista-pedidos">
   {% for pedido in pedidos %}
-  <li class="pedido-item {% if pedido.comprado %}comprado{% endif %}">
+ <li class="pedido-item {% if pedido.comprado %}comprado{% endif %}">
+  <div class="pedido-contenido">
     <form method="POST" action="/pedido/{{ pedido.id }}/toggle" class="form-toggle">
       <button type="submit" class="btn-toggle">
         {% if pedido.comprado %}✅{% else %}⬜{% endif %}
       </button>
     </form>
-
     <span class="pedido-nombre">{{ pedido.nombre }}</span>
+  </div>
 
-    <form method="POST" action="/pedido/{{ pedido.id }}/eliminar" class="form-eliminar">
-      <button type="submit" class="btn-eliminar">🗑️</button>
-    </form>
-  </li>
+  <form method="POST" action="/pedido/{{ pedido.id }}/eliminar" class="form-eliminar">
+    <button type="submit" class="btn-eliminar">🗑️</button>
+  </form>
+</li>
+
+
   {% endfor %}
 </ul>
 
 <a href="/" class="volver-inicio">🏠 Volver al inicio</a>
+<br><br>
+<br><br>
 {% endblock %}

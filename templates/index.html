@@ -334,5 +334,76 @@ window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15
 	}() );</script>
 
 	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+	
+<!-- Aviso de Cookies (Responsive) -->
+<style>
+  #cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #acaaab;
+    padding: 1rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    font-size: 0.95rem;
+    display: none;
+    z-index: 9999;
+    text-align: center;
+    flex-wrap: wrap;
+  }
+
+  #cookie-banner p {
+    margin: 0;
+    padding: 0 0.5rem;
+    display: inline;
+  }
+
+  #cookie-banner a {
+    color: #0077cc;
+    text-decoration: underline;
+  }
+
+  #cookie-banner button {
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin-left: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 600px) {
+    #cookie-banner {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #cookie-banner button {
+      margin: 1rem 0 0 0;
+    }
+  }
+</style>
+
+<div id="cookie-banner" style="display: none;" class="cookie-container">
+  <p>Este sitio usa cookies para mejorar tu experiencia. Al continuar, aceptas nuestra 
+    <a href="/politica-privacidad" target="_blank">política de privacidad</a>.
+  </p>
+  <button onclick="aceptarCookies()">Aceptar</button>
+</div>
+
+<script>
+  function aceptarCookies() {
+    document.getElementById("cookie-banner").style.display = "none";
+    localStorage.setItem("cookies_aceptadas", "true");
+  }
+
+  window.onload = function () {
+    if (!localStorage.getItem("cookies_aceptadas")) {
+      document.getElementById("cookie-banner").style.display = "flex";
+    }
+  };
+</script>
+
 </body>
 </html>

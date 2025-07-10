@@ -776,72 +776,66 @@ width: 80%;
 .lista-pedidos {
   list-style: none;
   padding: 0;
-  max-width: 600px;
-  margin: 0 auto 2rem;
+  margin: 0;
 }
 
 .pedido-item {
   display: flex;
-  align-items: center;
+  align-items: center;         /* Alinea verticalmente */
   justify-content: space-between;
-  background: #f5f5f5;
-  padding: 12px 16px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  flex-wrap: wrap;
-}
-
-.pedido-item.comprado .pedido-nombre {
-  text-decoration: line-through;
-  color: gray;
-}
-
-.pedido-nombre {
-  flex: 1;
-  margin: 0 10px;
-  font-size: 1rem;
+  background-color: #f9f9f9;
+  padding: 0.8rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  gap: 0.5rem;
 }
 
 .form-toggle,
 .form-eliminar {
-  display: inline;
+  margin: 0;
 }
 
 .btn-toggle,
 .btn-eliminar {
   background: none;
   border: none;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
 
-.btn-eliminar {
-  color: red;
+.pedido-nombre {
+  flex: 1;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  word-break: break-word;
 }
 
-.volver-inicio {
-  display: block;
-  text-align: center;
-  margin-top: 2rem;
-  color: #007bff;
-  text-decoration: none;
-}
-
-.volver-inicio:hover {
-  text-decoration: underline;
-}
-
-/* ✅ Responsive */
-@media (max-width: 500px) {
+/* Eliminar reglas móviles que rompen la estructura horizontal */
+@media screen and (max-width: 600px) {
   .pedido-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .pedido-nombre {
-    margin: 10px 0;
+    flex-direction: row;       /* Mantener horizontal */
+    align-items: center;
   }
 }
+.pedido-contenido {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Espacio entre checkbox y texto */
+  flex: 1;
+}
+
+
+.comprado .pedido-nombre {
+  text-decoration: line-through;
+  color: gray;
+}
+
 .admin-form-container {
   max-width: 600px;
   margin: 2rem auto;
