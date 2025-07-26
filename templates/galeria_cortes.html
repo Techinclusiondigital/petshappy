@@ -28,7 +28,7 @@
                 {% if corte.user_id == current_user.id %}
                   <form method="POST" action="{{ url_for('eliminar_corte_usuario', corte_id=corte.id) }}">
                     <input type="hidden" name="raza" value="{{ corte.nombre_raza }}">
-                    <button type="submit">🗑 Eliminar</button>
+                    <button type="submit">Eliminar</button>
                   </form>
                 {% else %}
                   <form method="POST" action="{{ url_for('ocultar_corte', corte_id=corte.id) }}">
