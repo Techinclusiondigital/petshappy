@@ -5,6 +5,9 @@
   <a href="/logout" class="boton-salir">Cerrar sesión</a>
 </div>
 <h1>👥 Panel de Administración de Usuarios</h1>
+{% if current_user.email == "techinclusiondigital@gmail.com" %}
+  <a href="/admin/subir-corte">📷 Subir corte por raza</a>
+{% endif %}
 
 
 <a href="/admin/usuarios/nuevo" class="boton">➕ Crear nuevo usuario</a>

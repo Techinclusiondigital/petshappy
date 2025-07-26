@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 style="text-align: center;">🐾 Cortes por raza</h2>
+
+<div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 25px;">
+  <label for="raza">Elige una raza:</label>
+  <select id="raza" onchange="if(this.value) location.href=this.value;">
+    <option value="/cortes">-- Ver todas --</option>
+    {% for r in razas %}
+      <option value="/cortes?raza={{ r }}" {% if raza_seleccionada == r %}selected{% endif %}>{{ r }}</option>
+    {% endfor %}
+  </select>
+  <a href="{{ url_for('formulario_subir_corte', raza=raza_seleccionada) }}" class="btn btn-secondary">📤 Subir imagen</a>
+</div>
+<br><br>
+<br><br>
+{% if raza_seleccionada %}
+  {% if cortes %}
+    <div id="cortes-container" class="sortable-container">
+      {% for corte in cortes %}
+        <div class="corte-card" data-id="{{ corte.id }}">
+          <div class="img-container">
+            <img src="{{ url_for('static', filename='uploads/' ~ corte.imagen_url) }}" alt="Corte {{ corte.nombre_raza }}">
+            <div class="dropdown">
+              <button class="dropdown-toggle" onclick="toggleDropdown(this)">⋮</button>
+              <div class="dropdown-menu">
+                {% if corte.user_id == current_user.id %}
+                  <form method="POST" action="{{ url_for('eliminar_corte_usuario', corte_id=corte.id) }}">
+                    <input type="hidden" name="raza" value="{{ corte.nombre_raza }}">
+                    <button type="submit">🗑 Eliminar</button>
+                  </form>
+                {% else %}
+                  <form method="POST" action="{{ url_for('ocultar_corte', corte_id=corte.id) }}">
+                    <input type="hidden" name="raza" value="{{ corte.nombre_raza }}">
+                    <button type="submit">🔒 Ocultar</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div id="guardar-orden-btn-container" style="display: none; text-align: center; margin-top: 20px;">
+  <button onclick="guardarOrden()" class="btn btn-success">💾 Guardar cambios</button>
+  <br><br>
+  <br><br>
+</div>
+
+  {% else %}
+    <p style="text-align: center;">No hay imágenes para esta raza aún.</p>
+  {% endif %}
+
+  {% if cortes_ocultos %}
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="toggleOcultos()" class="btn btn-outline-secondary">
+      👁 Mostrar cortes ocultos de {{ raza_seleccionada }}
+    </button>
+  </div>
+<br><br>
+<br><br>
+  <div id="ocultos-section" style="display: none; margin-top: 20px;">
+    <h3 style="text-align: center;"></h3>
+    
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+      {% for corte in cortes_ocultos %}
+        <div style="border: 1px solid #ccc; padding: 10px; width: 220px; text-align: center; border-radius: 8px;">
+          <img src="{{ url_for('static', filename='uploads/' ~ corte.imagen_url) }}" alt="Corte oculto" style="max-width: 100%; border-radius: 6px;">
+          <form action="{{ url_for('mostrar_corte', corte_id=corte.id) }}" method="POST">
+  <input type="hidden" name="raza" value="{{ raza_seleccionada }}">
+  <button class="btn btn-danger btn-sm">👁 Mostrar</button>
+</form>
+
+        </div>
+        <br><br>
+        <br><br>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+  let ordenModificado = false;
+
+  function toggleDropdown(button) {
+    const dropdown = button.nextElementSibling;
+    dropdown.classList.toggle("show");
+
+    document.querySelectorAll(".dropdown-menu").forEach(menu => {
+      if (menu !== dropdown) menu.classList.remove("show");
+    });
+  }
+
+  function toggleOcultos() {
+    const ocultos = document.getElementById("ocultos-section");
+    if (ocultos) {
+      ocultos.style.display = (ocultos.style.display === "none" || !ocultos.style.display) ? "block" : "none";
+    }
+  }
+
+  window.addEventListener("click", function (e) {
+    if (!e.target.matches(".dropdown-toggle")) {
+      document.querySelectorAll(".dropdown-menu").forEach(menu => {
+        menu.classList.remove("show");
+      });
+    }
+  });
+
+  // Guardar orden manual
+  function guardarOrden() {
+    const container = document.getElementById("cortes-container");
+    const orden = Array.from(container.querySelectorAll(".corte-card")).map(card => card.dataset.id);
+
+    fetch("/guardar_orden_cortes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ orden: orden })
+    }).then(() => {
+      ordenModificado = false;
+      document.getElementById("guardar-orden-btn-container").style.display = "none";
+      alert("✔ Orden guardado correctamente.");
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("cortes-container");
+    if (container) {
+      new Sortable(container, {
+        animation: 150,
+        onEnd: function () {
+          ordenModificado = true;
+          document.getElementById("guardar-orden-btn-container").style.display = "block";
+        }
+      });
+    }
+  });
+
+  // Alerta antes de salir si hay cambios sin guardar
+  window.addEventListener("beforeunload", function (e) {
+    if (ordenModificado) {
+      e.preventDefault();
+      e.returnValue = "";  // Requerido por algunos navegadores
+    }
+  });
+</script>
+
+
+
+<style>
+  .sortable-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+.btn-outline-secondary {
+background-color: rgb(173, 183, 184);
+
+}
+
+.btn-outline-secondary:hover {
+background-color: rgb(79, 89, 90);
+
+}
+.btn-success {
+ background-color: rgb(173, 183, 184); 
+}
+.btn-success:hover {
+ background-color: rgb(79, 89, 90);
+} 
+  .corte-card {
+    width: 220px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .img-container {
+    position: relative;
+    text-align: center;
+  }
+
+  .img-container img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .dropdown {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 5;
+  }
+
+  .dropdown-toggle {
+    background: none;
+    border: none;
+    color: white;
+    border-radius: 50%;
+    padding: 5px 8px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 28px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    z-index: 10;
+    min-width: 100px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .dropdown-menu.show {
+    display: block;
+  }
+
+  .dropdown-menu button {
+    width: 100%;
+    border: none;
+    background: none;
+    color: black;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .dropdown-menu button:hover {
+    background-color: #f1f1f1;
+  }
+</style>
+
+
+{% endblock %}

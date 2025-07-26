@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 style="text-align: center;">📸 Sube tu propio corte por raza</h2>
+
+<form method="POST" action="/subir_corte" enctype="multipart/form-data" style="max-width: 400px; margin: auto; display: flex; flex-direction: column; gap: 15px;">
+  <label for="nombre_raza">Raza:</label>
+  <select name="nombre_raza" required>
+    {% for raza in razas %}
+      <option value="{{ raza }}" {% if raza_seleccionada == raza %}selected{% endif %}>{{ raza }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="imagen">Imagen:</label>
+  <input type="file" name="imagen" accept="image/*" required>
+
+  <button type="submit" class="btn btn-success">📤 Subir foto</button>
+</form>
+{% endblock %}

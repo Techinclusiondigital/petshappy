@@ -24,6 +24,10 @@ import smtplib
 from itsdangerous import URLSafeTimedSerializer
 from flask import url_for
 from sqlalchemy import text
+from flask_migrate import Migrate
+
+
+
 
 def requiere_suscripcion(f):
     @wraps(f)
@@ -78,6 +82,9 @@ class Usuario(db.Model, UserMixin):
     direccion = db.Column(db.String(200))
     codigo_postal = db.Column(db.String(10))
     token_recuperacion = db.Column(db.String(200), nullable=True)
+    cortes_ocultos = db.relationship("CorteOculto", backref="usuario", lazy=True)
+    cortes_personales = db.relationship("CorteRaza", backref="usuario", lazy=True)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -161,11 +168,35 @@ class Cita(db.Model):
     usuario = db.relationship("Usuario", backref="citas")
     mascota = db.relationship("Mascota", backref="citas")
 
+class CorteRaza(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre_raza = db.Column(db.String(100), nullable=False)
+    imagen_url = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    es_publico = db.Column(db.Boolean, default=False)
+    cortes_ocultos = db.relationship("CorteOculto", backref="corte", cascade="all, delete-orphan")
+    orden = db.Column(db.Integer, default=0)
+
+
+class CorteOculto(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    corte_id = db.Column(db.Integer, db.ForeignKey('corte_raza.id'))
+
+
 class Pedido(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
     comprado = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))  # si quieres que cada usuario tenga los suyos
+
+class OrdenCorte(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+    corte_id = db.Column(db.Integer, db.ForeignKey("corte_raza.id"))
+    posicion = db.Column(db.Integer, default=0)
+
+    __table_args__ = (db.UniqueConstraint("usuario_id", "corte_id", name="unique_user_corte"),)
 
 
 # RUTAS
@@ -514,21 +545,293 @@ def eliminar_pedido(id):
     db.session.commit()
     return redirect("/pedidos")
 
-@app.route("/tutoriales")
-@login_required
-def tutoriales():
-    return render_template("tutoriales.html")
 
 
-@app.route("/api/tutoriales")
+@app.route("/cortes")
 @login_required
-def api_tutoriales():
-    tutoriales = [
-        {"raza": "Caniche corte comercial", "url": "https://www.youtube.com/embed/jlvbZWlhUmk"},
-        {"raza": "Schnauzer clásico", "url": "https://www.youtube.com/embed/8zvNxEjPH6A"},
-        {"raza": "Yorkshire corte cachorro", "url": "https://www.youtube.com/embed/Nv02texIsb8"},
+def galeria_cortes():
+    raza_seleccionada = request.args.get("raza")
+    ocultos_ids = [o.corte_id for o in current_user.cortes_ocultos]
+
+    # Query base: cortes visibles para el usuario
+    cortes_query = CorteRaza.query.filter(
+        ((CorteRaza.es_publico == True) & (~CorteRaza.id.in_(ocultos_ids))) |
+        (CorteRaza.user_id == current_user.id)
+    )
+
+    # Filtrar por raza si se ha seleccionado
+    if raza_seleccionada:
+        cortes_query = cortes_query.filter(CorteRaza.nombre_raza == raza_seleccionada)
+
+    cortes = cortes_query.all()
+
+    # Obtener orden personalizado del usuario (si existe)
+    orden_usuario = {
+        orden.corte_id: orden.posicion
+        for orden in OrdenCorte.query.filter_by(usuario_id=current_user.id).all()
+    }
+
+    # Ordenar según el orden guardado, los no encontrados van al final
+    cortes.sort(key=lambda c: orden_usuario.get(c.id, 9999))
+
+    # Cortes ocultos por usuario y raza
+    cortes_ocultos = CorteRaza.query.join(CorteOculto).filter(
+        CorteOculto.usuario_id == current_user.id
+    )
+    if raza_seleccionada:
+        cortes_ocultos = cortes_ocultos.filter(CorteRaza.nombre_raza == raza_seleccionada)
+    cortes_ocultos = cortes_ocultos.all()
+
+    RAZAS = [
+        "Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
+        "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
+        "Bloodhound", "Bobtail", "Bóxer", "Boston Terrier", "Border Collie", "Borzoi", "Braco Alemán", "Braco de Weimar",
+        "Bulldog Francés", "Bulldog Inglés", "Bullmastiff", "Cairn Terrier", "Caniche (Poodle)", "Caniche Toy",
+        "Cane Corso", "Cavalier King Charles Spaniel", "Chihuahua", "Chow Chow", "Cocker Americano", "Cocker Spaniel Inglés",
+        "Collie", "Dálmata", "Doberman", "Dogo Argentino", "Dogo de Burdeos", "Dogue Alemán (Gran Danés)", "Fox Terrier",
+        "Galgo Español", "Golden Retriever", "Gos d’Atura Català", "Gran Pirineo", "Husky Siberiano", "Jack Russell Terrier",
+        "Labrador Retriever", "Lhasa Apso", "Maltés", "Mastín Español", "Mastín Napolitano", "Papillón", "Pastor Alemán",
+        "Pastor Australiano", "Pastor Belga", "Pastor Blanco Suizo", "Pekinés", "Perro de Agua Español", "Pinscher Miniatura",
+        "Pitbull", "Podenco Ibicenco", "Pointer", "Pomerania", "Presa Canario", "Pug (Carlino)", "Rottweiler", "Samoyedo",
+        "San Bernardo", "Schnauzer", "Scottish Terrier", "Setter Irlandés", "Shar Pei", "Shiba Inu", "Shih Tzu",
+        "Staffordshire Bull Terrier", "Teckel (Dachshund)", "Terranova", "Vizsla", "Weimaraner", "Welsh Corgi", "West Highland White Terrier",
+        "Whippet", "Yorkshire Terrier",
+        "Gato común", "Gato abisinio", "Gato angora turco", "Gato azul ruso", "Gato balinés", "Gato bengalí", "Gato bombay",
+        "Gato bosque de Noruega", "Gato británico de pelo corto", "Gato burmés", "Gato cartujo (Chartreux)", "Gato cornish rex",
+        "Gato devon rex", "Gato egipcio mau", "Gato esfinge (Sphynx)", "Gato exótico de pelo corto", "Gato habana brown",
+        "Gato himalayo", "Gato japonés bobtail", "Gato laPerm", "Gato maine coon", "Gato manx", "Gato munchkin",
+        "Gato oriental de pelo corto", "Gato persa", "Gato ragdoll", "Gato savannah", "Gato siamés", "Gato siberiano",
+        "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van"
     ]
-    return jsonify(tutoriales)
+
+    return render_template("galeria_cortes.html",
+                           cortes=cortes,
+                           cortes_ocultos=cortes_ocultos,
+                           razas=RAZAS,
+                           raza_seleccionada=raza_seleccionada)
+
+
+import os
+from werkzeug.utils import secure_filename
+
+@app.route("/admin/subir-corte", methods=["GET", "POST"])
+@login_required
+def subir_corte_admin():
+    if current_user.email != "techinclusiondigital@gmail.com":
+        abort(403)  # Solo el administrador puede subir fotos públicas
+
+    RAZAS = [ "Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
+    "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
+    "Bloodhound", "Bobtail", "Bóxer", "Boston Terrier", "Border Collie", "Borzoi", "Braco Alemán", "Braco de Weimar",
+    "Bulldog Francés", "Bulldog Inglés", "Bullmastiff", "Cairn Terrier", "Caniche (Poodle)", "Caniche Toy",
+    "Cane Corso", "Cavalier King Charles Spaniel", "Chihuahua", "Chow Chow", "Cocker Americano", "Cocker Spaniel Inglés",
+    "Collie", "Dálmata", "Doberman", "Dogo Argentino", "Dogo de Burdeos", "Dogue Alemán (Gran Danés)", "Fox Terrier",
+    "Galgo Español", "Golden Retriever", "Gos d’Atura Català", "Gran Pirineo", "Husky Siberiano", "Jack Russell Terrier",
+    "Labrador Retriever", "Lhasa Apso", "Maltés", "Mastín Español", "Mastín Napolitano", "Papillón", "Pastor Alemán",
+    "Pastor Australiano", "Pastor Belga", "Pastor Blanco Suizo", "Pekinés", "Perro de Agua Español", "Pinscher Miniatura",
+    "Pitbull", "Podenco Ibicenco", "Pointer", "Pomerania", "Presa Canario", "Pug (Carlino)", "Rottweiler", "Samoyedo",
+    "San Bernardo", "Schnauzer", "Scottish Terrier", "Setter Irlandés", "Shar Pei", "Shiba Inu", "Shih Tzu",
+    "Staffordshire Bull Terrier", "Teckel (Dachshund)", "Terranova", "Vizsla", "Weimaraner", "Welsh Corgi", "West Highland White Terrier",
+    "Whippet", "Yorkshire Terrier",
+    "Gato común", "Gato abisinio", "Gato angora turco", "Gato azul ruso", "Gato balinés", "Gato bengalí", "Gato bombay",
+    "Gato bosque de Noruega", "Gato británico de pelo corto", "Gato burmés", "Gato cartujo (Chartreux)", "Gato cornish rex",
+    "Gato devon rex", "Gato egipcio mau", "Gato esfinge (Sphynx)", "Gato exótico de pelo corto", "Gato habana brown",
+    "Gato himalayo", "Gato japonés bobtail", "Gato laPerm", "Gato maine coon", "Gato manx", "Gato munchkin",
+    "Gato oriental de pelo corto", "Gato persa", "Gato ragdoll", "Gato savannah", "Gato siamés", "Gato siberiano",
+    "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van"]  # Pega aquí tu lista de razas
+
+    if request.method == "POST":
+        raza = request.form.get("raza")
+        imagen = request.files.get("imagen")
+
+        if imagen:
+            filename = secure_filename(imagen.filename)
+            ruta = os.path.join("static", "uploads", filename)
+            imagen.save(ruta)
+
+            nuevo_corte = CorteRaza(
+                nombre_raza=raza,
+                imagen_url=filename,  # guardamos solo el nombre
+                es_publico=True
+            )
+            db.session.add(nuevo_corte)
+            db.session.commit()
+            flash("✅ Corte público subido correctamente.")
+            return redirect("/admin/subir-corte")
+
+
+    # 👇 obtenemos cortes públicos para mostrarlos
+    cortes_publicos = CorteRaza.query.filter_by(es_publico=True).all()
+
+    return render_template("admin_subir_corte.html", razas=RAZAS, cortes_publicos=cortes_publicos)
+
+
+
+@app.route("/admin/corte/<int:corte_id>/eliminar", methods=["POST"])
+@login_required
+def eliminar_corte_publico(corte_id):
+    if current_user.email != "techinclusiondigital@gmail.com":
+        abort(403)
+
+    corte = CorteRaza.query.get_or_404(corte_id)
+
+    # Borrar archivo físico
+    if corte.imagen_url:
+       ruta_imagen = os.path.join(app.root_path, "static", "uploads", corte.imagen_url)
+
+    if os.path.exists(ruta_imagen):
+            os.remove(ruta_imagen)
+
+    # Eliminar de la base de datos
+    db.session.delete(corte)
+    db.session.commit()
+    flash("🗑 Corte eliminado correctamente.")
+    return redirect("/admin/subir-corte")
+
+
+
+
+
+@app.route("/ocultar_corte/<int:corte_id>", methods=["POST"])
+@login_required
+def ocultar_corte(corte_id):
+    corte = CorteRaza.query.get_or_404(corte_id)
+
+    # Asegura que la imagen es pública y no es del usuario
+    if corte.es_publico is not True or corte.user_id == current_user.id:
+        abort(403)
+
+    # Verificar si ya está oculto
+    ya_oculto = CorteOculto.query.filter_by(usuario_id=current_user.id, corte_id=corte_id).first()
+    if not ya_oculto:
+        oculto = CorteOculto(usuario_id=current_user.id, corte_id=corte_id)
+        db.session.add(oculto)
+        db.session.commit()
+
+    flash("🔒 Imagen oculta correctamente.")
+
+    # Redirigir con la raza original del corte
+    return redirect(f"/cortes?raza={corte.nombre_raza}")
+
+@app.route("/mostrar_corte/<int:corte_id>", methods=["POST"])
+@login_required
+def mostrar_corte(corte_id):
+    corte_oculto = CorteOculto.query.filter_by(usuario_id=current_user.id, corte_id=corte_id).first()
+    if corte_oculto:
+        db.session.delete(corte_oculto)
+        db.session.commit()
+        flash("✅ Imagen visible nuevamente.")
+
+    raza = request.form.get("raza")
+    if raza:
+        return redirect(f"/cortes?raza={raza}")
+    return redirect("/cortes")
+
+
+
+@app.route("/guardar_orden_cortes", methods=["POST"])
+@login_required
+def guardar_orden_cortes():
+    data = request.get_json()
+    orden_ids = data.get("orden", [])
+
+    for idx, corte_id in enumerate(orden_ids):
+        corte_id = int(corte_id)
+        orden = OrdenCorte.query.filter_by(usuario_id=current_user.id, corte_id=corte_id).first()
+
+        if orden:
+            orden.posicion = idx
+        else:
+            nueva_orden = OrdenCorte(usuario_id=current_user.id, corte_id=corte_id, posicion=idx)
+            db.session.add(nueva_orden)
+
+    db.session.commit()
+    return jsonify({"mensaje": "Orden guardado correctamente"})
+
+
+@app.route("/cortes_ocultos")
+@login_required
+def ver_cortes_ocultos():
+    ocultos = CorteOculto.query.filter_by(usuario_id=current_user.id).all()
+    cortes_ocultos = [CorteRaza.query.get(oculto.corte_id) for oculto in ocultos]
+
+    return render_template("cortes_ocultos.html", cortes_ocultos=cortes_ocultos)
+
+
+
+@app.route("/subir_corte", methods=["POST"])
+@login_required
+def subir_corte():
+    archivo = request.files.get("imagen")
+    nombre_raza = request.form.get("nombre_raza")
+
+    if archivo and nombre_raza:
+        filename = secure_filename(archivo.filename)
+        ruta = os.path.join(app.root_path, "static", "uploads", filename)
+        os.makedirs(os.path.dirname(ruta), exist_ok=True)
+        archivo.save(ruta)
+
+        nuevo = CorteRaza(
+            nombre_raza=nombre_raza,
+            imagen_url=filename,  # o imagen=filename si tu modelo lo usa así
+            user_id=current_user.id,
+            es_publico=False
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+        flash("✅ Corte subido correctamente.")
+        return redirect(f"/cortes?raza={nombre_raza}")
+    
+    flash("❌ Debes seleccionar una imagen y una raza.")
+    return redirect("/cortes")
+
+@app.route("/subir_corte_formulario", methods=["GET"])
+@login_required
+def formulario_subir_corte():
+    RAZAS = ["Affenpinscher", "Akita Inu", "Alaskan Malamute", "American Bully", "American Staffordshire Terrier",
+    "Basenji", "Basset Hound", "Beagle", "Bearded Collie", "Bedlington Terrier", "Bichón Frisé", "Bichón Maltés",
+    "Bloodhound", "Bobtail", "Bóxer", "Boston Terrier", "Border Collie", "Borzoi", "Braco Alemán", "Braco de Weimar",
+    "Bulldog Francés", "Bulldog Inglés", "Bullmastiff", "Cairn Terrier", "Caniche (Poodle)", "Caniche Toy",
+    "Cane Corso", "Cavalier King Charles Spaniel", "Chihuahua", "Chow Chow", "Cocker Americano", "Cocker Spaniel Inglés",
+    "Collie", "Dálmata", "Doberman", "Dogo Argentino", "Dogo de Burdeos", "Dogue Alemán (Gran Danés)", "Fox Terrier",
+    "Galgo Español", "Golden Retriever", "Gos d’Atura Català", "Gran Pirineo", "Husky Siberiano", "Jack Russell Terrier",
+    "Labrador Retriever", "Lhasa Apso", "Maltés", "Mastín Español", "Mastín Napolitano", "Papillón", "Pastor Alemán",
+    "Pastor Australiano", "Pastor Belga", "Pastor Blanco Suizo", "Pekinés", "Perro de Agua Español", "Pinscher Miniatura",
+    "Pitbull", "Podenco Ibicenco", "Pointer", "Pomerania", "Presa Canario", "Pug (Carlino)", "Rottweiler", "Samoyedo",
+    "San Bernardo", "Schnauzer", "Scottish Terrier", "Setter Irlandés", "Shar Pei", "Shiba Inu", "Shih Tzu",
+    "Staffordshire Bull Terrier", "Teckel (Dachshund)", "Terranova", "Vizsla", "Weimaraner", "Welsh Corgi", "West Highland White Terrier",
+    "Whippet", "Yorkshire Terrier",
+    "Gato común", "Gato abisinio", "Gato angora turco", "Gato azul ruso", "Gato balinés", "Gato bengalí", "Gato bombay",
+    "Gato bosque de Noruega", "Gato británico de pelo corto", "Gato burmés", "Gato cartujo (Chartreux)", "Gato cornish rex",
+    "Gato devon rex", "Gato egipcio mau", "Gato esfinge (Sphynx)", "Gato exótico de pelo corto", "Gato habana brown",
+    "Gato himalayo", "Gato japonés bobtail", "Gato laPerm", "Gato maine coon", "Gato manx", "Gato munchkin",
+    "Gato oriental de pelo corto", "Gato persa", "Gato ragdoll", "Gato savannah", "Gato siamés", "Gato siberiano",
+    "Gato singapura", "Gato somalí", "Gato tonquinés", "Gato turco van" ]  # tu lista de razas
+    raza_seleccionada = request.args.get("raza")
+    return render_template("formulario_subir_corte.html", razas=RAZAS, raza_seleccionada=raza_seleccionada)
+
+@app.route("/corte_usuario/<int:corte_id>/eliminar", methods=["POST"])
+@login_required
+def eliminar_corte_usuario(corte_id):
+    corte = CorteRaza.query.get_or_404(corte_id)
+
+    # Asegúrate de que el corte pertenece al usuario
+    if corte.user_id != current_user.id:
+        abort(403)
+
+    # Borrar archivo físico
+    if corte.imagen_url:
+        ruta = os.path.join(app.root_path, "static", "uploads_cortes", corte.imagen_url)
+        if os.path.exists(ruta):
+            os.remove(ruta)
+
+    db.session.delete(corte)
+    db.session.commit()
+    flash("🗑 Imagen eliminada correctamente.")
+    return redirect(f"/cortes?raza={corte.nombre_raza}")
+
+
+
 
 RECAPTCHA_SECRET_KEY = "6LfjNX0rAAAAAHnB0abPdA9WOZoyFT-e6wW0xJlu"
 
@@ -1168,6 +1471,6 @@ if __name__ == "__main__":
         db.create_all()
         print("Rutas registradas:")
         print(app.url_map)
-
+        migrate = Migrate(app, db)
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 

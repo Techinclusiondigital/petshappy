@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>📸 Subir foto pública de corte por raza</h2>
+
+<form method="POST" enctype="multipart/form-data">
+  <label for="raza">Raza:</label>
+  <input type="text" name="raza" list="razas" required>
+  <datalist id="razas">
+    {% for r in razas %}
+      <option value="{{ r }}">
+    {% endfor %}
+  </datalist>
+
+  <label for="imagen">Imagen:</label>
+  <input type="file" name="imagen" accept="image/*" required>
+
+  <button type="submit" class="btn btn-success mt-2">📤 Subir foto</button>
+</form>
+
+<hr>
+
+<h3>📂 Cortes públicos subidos</h3>
+
+{% if cortes_publicos %}
+  <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+    {% for corte in cortes_publicos %}
+      <div style="border: 1px solid #ccc; padding: 10px; width: 200px; text-align: center;">
+        <p><strong>{{ corte.nombre_raza }}</strong></p>
+       <img src="{{ url_for('static', filename='uploads/' ~ corte.imagen_url) }}"
+     alt="Corte {{ corte.nombre_raza }}"
+     style="max-width: 100%;">
+
+        <form action="{{ url_for('eliminar_corte_publico', corte_id=corte.id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta imagen?')">
+          <button type="submit" class="btn btn-danger btn-sm mt-2">🗑 Eliminar</button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No hay imágenes públicas aún.</p>
+{% endif %}
+
+<br>
+<a href="{{ url_for('admin_usuarios') }}" class="btn btn-primary">🏠 Volver al panel de admin</a>
+
+<br><br>
+<br><br>
+{% endblock %}

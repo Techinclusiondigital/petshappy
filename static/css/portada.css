@@ -13,7 +13,7 @@ body {
 }
 
 .logo-header img {
-    height: 50px;
+    height: 30px;
 }
 
 .video-contenedor {
@@ -124,4 +124,7 @@ body {
 
 .boton-registro:hover {
   background-color: #007a4d;
+}
+img.logo-caniche-video {
+    width: 200px;
 }

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Petshappy{% endblock %}</title>
+    <title>{% block title %}ZuPelu{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <style>
@@ -59,11 +59,14 @@ header {
 
      font-size: 17px;
 }
-        
+  
 
 .logo-caniche {
     height: 160px; /* ajusta según necesites */
     width: auto;
+}
+.logo-caniche-video2 {
+    width: 180px;
 }
 
 
@@ -131,12 +134,13 @@ header {
    <header>
   <div class="color-content">
     <div class="header-content">
-      
-      <!-- 🐶 Caniche animado centrado -->
-      <img src="{{ url_for('static', filename='video/westy.gif') }}" alt="Caniche animado" class="logo-caniche-video">
+      <figure>
+  <img src="{{ url_for('static', filename='img/ZuPelu.png') }}" alt="Caniche animado" class="logo-caniche-video2">
+</figure>
+     
 
       <!-- 👋 Bienvenida -->
-      <h1 class="bienvenido">Bienvenid@ a HappyPets, {{ current_user.nombre_usuario }}</h1>
+      <h1 class="bienvenido">Bienvenid@ a ZuPelu, {{ current_user.nombre_usuario }}</h1>
      
 
 {% if not ocultar_menu %}
@@ -146,7 +150,10 @@ header {
         <a href="/pedidos" class="icono-lateral izquierda">
           <img src="{{ url_for('static', filename='video/PEDIDOS.gif') }}" alt="Pedidos">
         </a>
-        <a href="/tutoriales" class="icono-lateral derecha">
+         <!-- 🐶 Caniche animado centrado -->
+      <img src="{{ url_for('static', filename='video/westy.gif') }}" alt="Caniche animado" class="logo-caniche-video">
+        <a href="/cortes" class="icono-lateral derecha">
+        
           <img src="{{ url_for('static', filename='video/TUTORIALES.gif') }}" alt="Tutoriales">
         </a>
       </div>

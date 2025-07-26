@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 style="text-align:center;">📤 Subir tu propio corte por raza</h2>
+
+<form method="POST" action="{{ url_for('subir_corte') }}" enctype="multipart/form-data" style="max-width: 400px; margin: auto; text-align: center; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+  <div class="form-group">
+    <label for="nombre_raza"><strong>Selecciona una raza:</strong></label>
+    <select name="nombre_raza" required class="form-control">
+      <option value="" disabled selected>Elige una raza</option>
+      {% for raza in razas %}
+        <option value="{{ raza }}" {% if raza == raza_seleccionada %}selected{% endif %}>{{ raza }}</option>
+      {% endfor %}
+      
+    </select>
+    <br><br>
+      <br><br>
+  </div>
+
+  <div class="form-group mt-3">
+    <label for="imagen"><strong>Selecciona una imagen:</strong></label>
+    <input type="file" name="imagen" class="form-control-file" required>
+ <br><br>
+ <br><br>
+</div>
+
+<br><br>
+<br><br>
+  <button type="submit" class="btn btn-success mt-3">📤 Subir imagen</button>
+</form>
+
+<hr>
+
+{% if imagenes_usuario %}
+<h3 style="text-align:center;">🖼 Tus imágenes subidas</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+  {% for corte in imagenes_usuario %}
+  <div style="border: 1px solid #ccc; padding: 10px; width: 200px; text-align: center;">
+    <p><strong>{{ corte.nombre_raza }}</strong></p>
+    <img src="{{ url_for('static', filename='uploads_cortes/' ~ corte.imagen) }}" alt="Corte" style="max-width: 100%;">
+    <form action="{{ url_for('eliminar_corte_usuario', corte_id=corte.id) }}" method="POST" onsubmit="return confirm('¿Eliminar esta imagen?')">
+      <button type="submit" class="btn btn-danger btn-sm mt-2">🗑 Eliminar</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
