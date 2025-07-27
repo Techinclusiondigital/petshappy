@@ -320,7 +320,7 @@ a:hover {
 
 /* Iconos individuales */
 .icono-lateral img {
-  height: 100px;
+  height: 150px;
   border-radius: 10px;
   object-fit: cover;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
