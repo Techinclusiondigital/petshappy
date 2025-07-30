@@ -25,6 +25,7 @@ from itsdangerous import URLSafeTimedSerializer
 from flask import url_for
 from sqlalchemy import text
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash
 
 
 
@@ -84,6 +85,7 @@ class Usuario(db.Model, UserMixin):
     token_recuperacion = db.Column(db.String(200), nullable=True)
     cortes_ocultos = db.relationship("CorteOculto", backref="usuario", lazy=True)
     cortes_personales = db.relationship("CorteRaza", backref="usuario", lazy=True)
+    crear_usuario = db.Column(db.String(100))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -167,6 +169,8 @@ class Cita(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
     usuario = db.relationship("Usuario", backref="citas")
     mascota = db.relationship("Mascota", backref="citas")
+
+
 
 class CorteRaza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -544,6 +548,17 @@ def eliminar_pedido(id):
     db.session.delete(pedido)
     db.session.commit()
     return redirect("/pedidos")
+
+
+
+
+
+
+# Ejemplo en Python Flask (ajusta a tu framework)
+
+@app.route("/bienvenida")
+def bienvenida():
+    return render_template("bienvenida.html")
 
 
 
@@ -1141,7 +1156,7 @@ def registro():
             # Login automático y redirección
             login_user(nuevo)
             flash("✅ Registro exitoso. ¡Bienvenido!")
-            return redirect("/dashboard")
+            return redirect("/bienvenida")
 
         except Exception as e:
             print("❌ Error al registrar usuario:", e)
