@@ -830,9 +830,11 @@ def formulario_subir_corte():
 def eliminar_corte_usuario(corte_id):
     corte = CorteRaza.query.get_or_404(corte_id)
 
-    # Asegúrate de que el corte pertenece al usuario
     if corte.user_id != current_user.id:
         abort(403)
+
+    # Eliminar relación en orden_corte
+    OrdenCorte.query.filter_by(corte_id=corte.id).delete()
 
     # Borrar archivo físico
     if corte.imagen_url:
