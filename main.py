@@ -30,14 +30,40 @@ from werkzeug.security import generate_password_hash
 
 
 
+from functools import wraps
+from flask import redirect, url_for, flash
+from datetime import datetime, timezone, timedelta
+from flask_login import current_user
+
 def requiere_suscripcion(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.en_periodo_prueba():
-            flash("🚫 Tu suscripción ha expirado. Renueva para seguir usando la app.")
-            return redirect("/pago")
+        usuario = current_user
+
+        if not usuario.is_authenticated:
+            return redirect(url_for('login'))
+
+        fecha_alta = usuario.fecha_alta
+        if fecha_alta.tzinfo is None:
+            fecha_alta = fecha_alta.replace(tzinfo=timezone.utc)
+
+        fin_prueba = fecha_alta + timedelta(days=30)
+        ahora = datetime.now(timezone.utc)
+
+        if ahora > fin_prueba:
+            # ✅ Si no tiene plan elegido
+            if not usuario.plan_id:
+                flash("⏰ Tu periodo de prueba ha terminado. Elige un plan para continuar.")
+                return redirect(url_for("elegir_plan"))
+
+            # ✅ Si tiene plan elegido pero no ha completado pago
+            if not usuario.subscripcion_id:
+                flash("💳 Debes completar el pago para continuar.")
+                return redirect(url_for("pago"))
+
         return f(*args, **kwargs)
     return decorated_function
+
 
 
 
@@ -86,6 +112,7 @@ class Usuario(db.Model, UserMixin):
     cortes_ocultos = db.relationship("CorteOculto", backref="usuario", lazy=True)
     cortes_personales = db.relationship("CorteRaza", backref="usuario", lazy=True)
     crear_usuario = db.Column(db.String(100))
+    plan_id = db.Column(db.Integer, db.ForeignKey("plan.id"))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -170,7 +197,15 @@ class Cita(db.Model):
     usuario = db.relationship("Usuario", backref="citas")
     mascota = db.relationship("Mascota", backref="citas")
 
+class Plan(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    precio = db.Column(db.Float, nullable=False)
+    max_fichas = db.Column(db.Integer)
+    max_citas = db.Column(db.Integer)
+    funcionalidades = db.Column(db.Text)
 
+    usuarios = db.relationship("Usuario", backref="plan")
 
 class CorteRaza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -550,8 +585,34 @@ def eliminar_pedido(id):
     return redirect("/pedidos")
 
 
+@app.route("/planes", methods=["GET", "POST"])
+@login_required
+def ver_planes():
+    planes = Plan.query.all()
+    return render_template("planes.html", planes=planes)
 
 
+@app.route("/elegir_plan")
+@login_required
+def elegir_plan():
+    planes = Plan.query.all()
+    return render_template("elegir_plan.html", planes=planes)
+
+
+
+
+
+@app.route("/crear_ficha", methods=["POST"])
+@login_required
+def crear_ficha():
+    plan = current_user.plan
+    fichas_actuales = Ficha.query.filter_by(user_id=current_user.id).count()
+
+    if plan.max_fichas and fichas_actuales >= plan.max_fichas:
+        flash("❌ Has alcanzado el límite de fichas para tu plan.")
+        return redirect(url_for("dashboard"))
+
+    # continuar con la creación...
 
 
 # Ejemplo en Python Flask (ajusta a tu framework)
@@ -1382,6 +1443,15 @@ from datetime import datetime, timedelta, timezone
 @login_required
 @requiere_suscripcion
 def dashboard():
+    # Verificar expiración del periodo de prueba (30 días)
+    fecha_alta = current_user.fecha_alta or datetime.utcnow()
+    fecha_fin_prueba = fecha_alta + timedelta(days=30)
+
+    if datetime.utcnow() > fecha_fin_prueba and not current_user.plan_seleccionado:
+        flash("Tu periodo de prueba ha terminado. Elige un plan para continuar.", "warning")
+        return redirect(url_for("elegir_plan"))  # Asegúrate de que esta ruta exista
+
+    # -------------------- lógica existente --------------------
     semana = int(request.args.get("semana", 0))
     fecha_param = request.args.get("fecha")
 
@@ -1435,12 +1505,6 @@ def dashboard():
             bloques_dia = bloques_manana + bloques_tarde
 
         agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
-
-    # Calcular fin del periodo de prueba
-    fecha_alta = current_user.fecha_alta
-    if fecha_alta.tzinfo is None:
-        fecha_alta = fecha_alta.replace(tzinfo=timezone.utc)
-    fecha_fin_prueba = fecha_alta + timedelta(days=30)
 
     return render_template(
         "dashboard.html",

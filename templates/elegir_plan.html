@@ -1,0 +1,17 @@
+<h2>Elige tu plan de suscripción</h2>
+<div class="plans">
+  {% for plan in planes %}
+    <div class="plan-card">
+      <h3>{{ plan.nombre }}</h3>
+      <p><strong>{{ plan.precio }} €/mes</strong></p>
+      <ul>
+        <li>Fichas: {{ plan.max_fichas or "Ilimitadas" }}</li>
+        <li>Citas: {{ plan.max_citas or "Ilimitadas" }}</li>
+        <li>{{ plan.funcionalidades }}</li>
+      </ul>
+      <form method="POST" action="{{ url_for('elegir_plan', plan_id=plan.id) }}">
+        <button class="btn btn-primary">Seleccionar</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
