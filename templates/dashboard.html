@@ -1,50 +1,115 @@
 {% extends "base.html" %}
-
 {% block title %}Panel de Control{% endblock %}
 
 {% block content %}
-  {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
-    <div class="alert alert-danger text-center">
-      <h2>🚫 Tu prueba gratuita ha caducado</h2>
-      <p>Activa tu suscripción para seguir usando la aplicación</p>  
+{% set usuario_real = current_user.usuario_principal or current_user %}
+
+{% if current_user.usuario_principal_id is none and not usuario_real.subscripcion_id and not usuario_real.en_periodo_prueba() %}
+  <div class="alert alert-danger text-center">
+    <h2>🚫 Tu prueba gratuita ha caducado</h2>
+    <p>Activa tu suscripción para seguir usando la aplicación</p>  
     <div style="display: flex; justify-content: center;">
-    <div id="paypal-button-container" style="max-width: 400px; width: 100%;"></div>
-</div>
-
-</div>
-  {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
-    <div class="alert alert-info text-center">
-      <h4>⏳ Tu prueba gratuita finaliza en:</h4>
-     <div id="contador" style="font-size: 16px; font-weight: bold;"></div>
+      <div id="paypal-button-container" style="max-width: 400px; width: 100%;"></div>
     </div>
-  {% endif %}
+  </div>
+{% elif usuario_real.en_periodo_prueba() and not usuario_real.subscripcion_id %}
+  <div class="alert alert-info text-center">
+    <h4>⏳ Tu prueba gratuita finaliza en:</h4>
+    <div id="contador" style="font-size: 16px; font-weight: bold;"></div>
+  </div>
+{% endif %}
 
-  <h2 class="text-center">📅 Agenda de Citas</h2>
 
-  <div class="agenda-container">
-    <a href="/cita" class="boton">➕ Agendar nueva cita</a>
-    <form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
-      <label for="fecha">📅 Selecciona una fecha:</label>
-      <input type="date" id="fecha" name="fecha" required>
-      <br><br>
-      <button class="btn-agenda">Ver agenda</button>
-    </form>
 
-   {% for fecha, nombre_dia, bloques in agenda %}
-  <h4>🗓️ {{ nombre_dia|capitalize }} {{ fecha.strftime("%d/%m/%Y") }}</h4>
+{% if usuario_real.plan and (usuario_real.plan.max_usuarios is none or usuario_real.plan.max_usuarios > 1) %}
+<!-- Botón de despliegue de usuarios asociados -->
+<div onclick="toggleUsuarios()" style="cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+  <h5 style="margin: 0;"> Usuarios asociados</h5>
+  <span id="flecha-gris" style="font-size: 1.0rem; color: gray;">⬇️</span>
+</div>
+
+<div id="bloque-usuarios" style="display: none;">
+  <p>Usuarios en tu plan: {{ usuario_real.usuarios_secundarios|length + 1 }} / {{ usuario_real.plan.max_usuarios or "∞" }}</p>
+
+  
+
+{% if current_user.usuario_principal_id is none and (usuario_real.plan.max_usuarios is none or usuario_real.usuarios_secundarios|length < usuario_real.plan.max_usuarios - 1) %}
+<form method="POST" action="/dashboard/agregar_usuario" class="d-flex gap-2 align-items-center">
+  <input type="text" name="nombre_usuario" placeholder="Nuevo usuario" required class="form-control">
+  <input type="email" name="email" placeholder="Email" required class="form-control">
+  <input type="password" name="password" placeholder="Contraseña" required class="form-control">
+
+  <button type="submit" class="btn-igual">➕ Añadir usuario</button>
+  <a href="{{ url_for('ver_usuarios') }}" class="btn-igual">Ver usuarios</a>
+</form>
+
+  {% for u in usuarios %}
+  <li>
+    {{ u.nombre_usuario }} - {{ u.email }}
+    </li>
+{% endfor %}
+
+{% elif current_user.usuario_principal_id is none %}
+  <p style="color: red;">Has alcanzado el límite de usuarios de tu plan.</p>
+{% endif %}
+{% endif %}
+  </div>
+<br><br>
+<div class="agenda-container">
+<h2 class="text-center">📅 Agenda de Citas</h2>
+<form method="GET" action="{{ url_for('dashboard') }}" class="fecha-form">
+  <label for="fecha">📅 Selecciona una fecha:</label>
+  <input type="date" id="fecha" name="fecha" required>
+  
+  <button class="btn-agenda">Ver agenda</button>
+</form>
+
+
+<div class="fecha-actual text-center my-3">
+  <h3><strong>{{ agenda[0][1]|capitalize }} {{ agenda[0][0].strftime('%d/%m/%Y') }}</strong></h3>
+</div>
+
+<div class="navegacion-agenda-responsive">
+  <a href="{{ url_for('dashboard', fecha=fecha_anterior) }}" class="btn btn-outline-primary">⬅️ Día anterior</a>
+  <a href="{{ url_for('dashboard', fecha=fecha_siguiente) }}" class="btn btn-outline-primary">Día siguiente ➡️</a>
+</div>
+
+<style>
+  .navegacion-agenda-responsive {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+    margin: 1rem 0;
+  }
+
+  @media (max-width: 576px) {
+    .navegacion-agenda-responsive {
+      padding: 0 0.5rem;
+    }
+  }
+</style>
+
+
+
+
+
+{% for fecha, nombre_dia, bloques in agenda %}
   <ul class="list-group mb-3">
     {% for bloque in bloques %}
       <li class="bloque-horario {% if not bloque.mascota %}libre{% else %}ocupado{% endif %}">
         {% if not bloque.mascota %}
           <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="bloque-libre">{{ bloque.texto }}</a>
         {% else %}
-          <strong>{{ bloque.hora }}</strong>
-         <a href="/mascota/{{ bloque.mascota.id }}" class="fw-bold nombre-mascota">
+         <strong>{{ bloque.hora }}</strong>
+<a href="/mascota/{{ bloque.mascota.id }}" class="fw-bold nombre-mascota">
   {{ bloque.mascota.nombre }}
 </a>
+- {{ bloque.tipo_servicio or "Sin servicio" }}
+<span class="text-muted small ms-2">
+  ({{ bloque.mascota.raza }} - {{ bloque.mascota.tamano }})
+</span>
 
-      
-          - {{ bloque.tipo_servicio or "Sin servicio" }}
 
           {% if bloque.cita_id %}
             <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
@@ -70,45 +135,41 @@
               </a>
             {% endif %}
 
-            <!-- ➕ Agendar otra cita a esta hora -->
-            <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra  cita a esta hora</a>
+            <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra cita a esta hora</a>
           {% endif %}
         {% endif %}
       </li>
     {% endfor %}
   </ul>
-{% endfor %}
-
-<h3>📋 Arqueo del día</h3>
-<form method="GET" action="/arqueo">
-  <button type="submit" class="btn btn-warning">💰 Ver arqueo de caja</button>
-</form>
-
+   <button onclick="mostrarContacto()" class="btn-consultas">Consultas e Incidencias</button>
+  {% endfor %}
 {% endblock %}
 
+</div>
+
 {% block scripts %}
-  {% if not current_user.subscripcion_id and not current_user.en_periodo_prueba() %}
-    <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
-    <script>
-      paypal.Buttons({
-        style: {
-          shape: 'rect',
-          color: 'gold',
-          layout: 'vertical',
-          label: 'subscribe'
-        },
-        createSubscription: function(data, actions) {
-          return actions.subscription.create({
-            plan_id: 'P-0YP52904YG949224RNAY3BJY'
-          });
-        },
-        onApprove: function(data, actions) {
-          alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
-          window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
-        }
-      }).render('#paypal-button-container');
-    </script>
-  {% elif current_user.en_periodo_prueba() and not current_user.subscripcion_id %}
+{% if current_user.usuario_principal_id is none and not usuario_real.subscripcion_id and not usuario_real.en_periodo_prueba() %}
+  <script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
+  <script>
+    paypal.Buttons({
+      style: {
+        shape: 'rect',
+        color: 'gold',
+        layout: 'vertical',
+        label: 'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          plan_id: 'P-0YP52904YG949224RNAY3BJY'
+        });
+      },
+      onApprove: function(data, actions) {
+        alert("✅ Suscripción realizada. ID: " + data.subscriptionID);
+        window.location.href = "/suscripcion_exitosa?sub_id=" + data.subscriptionID;
+      }
+    }).render('#paypal-button-container');
+  </script>
+{% elif usuario_real.en_periodo_prueba() and not usuario_real.subscripcion_id %}
   <script>
     const finPrueba = new Date("{{ fecha_fin_prueba.isoformat() }}");
 
@@ -133,6 +194,33 @@
     actualizarContador();
     setInterval(actualizarContador, 1000);
   </script>
+
 {% endif %}
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    window.toggleUsuarios = function() {
+      const bloque = document.getElementById('bloque-usuarios');
+      const flecha = document.getElementById('flecha-gris');
+      const visible = bloque.style.display === 'block';
+
+      bloque.style.display = visible ? 'none' : 'block';
+      flecha.textContent = visible ? '⬇️' : '⬆️';
+    };
+  });
+</script>
+<script>
+  function mostrarContacto() {
+    alert("📧 Email: techinclusiondigital@gmail.com\n📞 Teléfono: +34 641 75 2417");
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.innerWidth < 576) {
+      document.querySelector('.btn-agenda')?.style.setProperty("margin-top", "1rem");
+    }
+  });
+</script>
+
 {% endblock %}
+

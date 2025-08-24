@@ -1,5 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Elige tu plan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .plans-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .plan-card {
+      background-color: #fff;
+      border: 2px solid #000;
+      border-radius: 8px;
+      max-width: 320px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s;
+      text-align: center;
+    }
+
+    .plan-card h3 {
+      background-color: #dc3545;
+      color: white;
+      padding: 10px;
+      border-radius: 5px 5px 0 0;
+      margin: -20px -20px 15px -20px;
+    }
+
+    .plan-card p {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .plan-card ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .plan-card ul li::before {
+      content: "✔️ ";
+      color: green;
+    }
+
+    .plan-card button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+      margin-bottom: 10px;
+    }
+
+    .plan-card button:hover {
+      background-color: #218838;
+    }
+
+    @media (max-width: 768px) {
+      .plans-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    .paypal-container {
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
 <h2>Elige tu plan de suscripción</h2>
-<div class="plans">
+
+<div class="plans-container">
   {% for plan in planes %}
     <div class="plan-card">
       <h3>{{ plan.nombre }}</h3>
@@ -9,9 +107,63 @@
         <li>Citas: {{ plan.max_citas or "Ilimitadas" }}</li>
         <li>{{ plan.funcionalidades }}</li>
       </ul>
-      <form method="POST" action="{{ url_for('elegir_plan', plan_id=plan.id) }}">
-        <button class="btn btn-primary">Seleccionar</button>
-      </form>
+
+      <!-- Botón seleccionar -->
+      <button onclick="mostrarPaypal({{ plan.id }})">Seleccionar</button>
+
+      <!-- Contenedor PayPal oculto inicialmente -->
+      <div class="paypal-container" id="paypal-container-{{ plan.id }}">
+        <div id="paypal-button-{{ plan.id }}"></div>
+      </div>
     </div>
   {% endfor %}
 </div>
+
+<!-- SDK de PayPal -->
+<script src="https://www.paypal.com/sdk/js?client-id=AdKDB9XxfhHs8k-nO1sNPQVn2S2-kEih3HgO9Byj147xHOB4FLaIUVc0EGId3a6oECFgrdGP54KsQAUK&vault=true&intent=subscription"></script>
+
+<script>
+  const planes = {
+    {% for plan in planes %}
+      "{{ plan.id }}": {
+        nombre: "{{ plan.nombre }}",
+        paypal_plan_id: "{{ plan.paypal_plan_id }}"
+      },
+    {% endfor %}
+  };
+
+  function mostrarPaypal(planId) {
+    // Ocultar todos los contenedores
+    document.querySelectorAll('.paypal-container').forEach(div => div.style.display = 'none');
+
+    // Mostrar solo el contenedor del plan seleccionado
+    const container = document.getElementById('paypal-container-' + planId);
+    container.style.display = 'block';
+
+    // Evitar renderizar PayPal más de una vez
+    if (!container.dataset.rendered) {
+      paypal.Buttons({
+        style: {
+          shape: 'rect',
+          color: 'blue',
+          layout: 'vertical',
+          label: 'subscribe'
+        },
+        createSubscription: function (data, actions) {
+          return actions.subscription.create({
+            plan_id: planes[planId].paypal_plan_id
+          });
+        },
+        onApprove: function (data, actions) {
+          // Redirigir al backend
+          window.location.href = `/suscripcion_exitosa?subscription_id=${data.subscriptionID}&plan_id=${planId}`;
+        }
+      }).render('#paypal-button-' + planId);
+
+      container.dataset.rendered = "true";
+    }
+  }
+</script>
+
+</body>
+</html>

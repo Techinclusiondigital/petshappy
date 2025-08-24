@@ -4,11 +4,12 @@
 <div style="text-align: center; margin-bottom: 1rem;">
   <a href="/logout" class="boton-salir">Cerrar sesión</a>
 </div>
+
 <h1>👥 Panel de Administración de Usuarios</h1>
+
 {% if current_user.email == "techinclusiondigital@gmail.com" %}
   <a href="/admin/subir-corte">📷 Subir corte por raza</a>
 {% endif %}
-
 
 <a href="/admin/usuarios/nuevo" class="boton">➕ Crear nuevo usuario</a>
 
@@ -19,26 +20,43 @@
       <th>Usuario</th>
       <th>Email</th>
       <th>Empresa</th>
+      <th>Tipo de plan</th>
       <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
-    {% for user in usuarios %}
-    <tr>
-      <td>{{ user.id }}</td>
-      <td>{{ user.nombre_usuario }}</td>
-      <td>{{ user.email }}</td>
-      <td>{{ user.nombre_empresa or '' }}</td>
-      <td>
-        <a href="/admin/usuarios/{{ user.id }}/editar">✏️ Editar</a>
-       <form method="POST" action="/admin/usuarios/{{ user.id }}/eliminar" onsubmit="return confirm('¿Seguro que quieres eliminar este usuario?');">
-  <button type="submit">🗑️</button>
-</form>
+   {% for user in usuarios %}
+<tr>
+  <td>{{ user.id }}</td>
+  <td>{{ user.nombre_usuario }}</td>
+  <td>{{ user.email }}</td>
+  <td>{{ user.nombre_empresa or '' }}</td>
+  <td>{{ user.plan.nombre if user.plan else "Sin plan" }}</td>
+  <td>
+    <a href="/admin/usuarios/{{ user.id }}/editar">✏️ Editar</a>
+    <form method="POST" action="/admin/usuarios/{{ user.id }}/eliminar" onsubmit="return confirm('¿Eliminar este usuario?');">
+      <button type="submit">🗑️</button>
+    </form>
+  </td>
+</tr>
 
-      </td>
-    </tr>
-    {% endfor %}
+{% for sec in user.usuarios_secundarios %}
+<tr style="background-color: #f9f9f9;">
+  <td>{{ sec.id }}</td>
+  <td>↳ {{ sec.nombre_usuario }}</td>
+  <td>{{ sec.email }}</td>
+  <td>-</td>
+  <td>Secundario</td>
+  <td>
+    <a href="/admin/usuarios/{{ sec.id }}/editar">✏️ Editar</a>
+    <form method="POST" action="/admin/usuarios/{{ sec.id }}/eliminar" onsubmit="return confirm('¿Eliminar este usuario secundario?');">
+      <button type="submit">🗑️</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+{% endfor %}
+
   </tbody>
 </table>
 {% endblock %}
-

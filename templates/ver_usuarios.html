@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios asociados{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3 class="text-center">👥 Usuarios asociados</h3>
+  <p class="text-center">Desde aquí puedes editar o eliminar los usuarios secundarios de tu cuenta.</p>
+
+  <table class="table table-striped table-bordered text-center mt-4">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuario_real.usuarios_secundarios %}
+        <tr>
+          <td>{{ u.nombre_usuario }}</td>
+          <td>{{ u.email }}</td>
+       <td>
+  <a href="{{ url_for('editar_usuario_secundario', usuario_id=u.id) }}" class="btn-igual">✏️ Editar</a>
+<br><br>
+  <form action="{{ url_for('eliminar_usuario', usuario_id=u.id) }}" method="POST" style="display:inline;">
+    <button type="submit" class="btn-igual" onclick="return confirm('¿Seguro que deseas eliminar este usuario?')">
+      🗑️ Eliminar
+    </button>
+  </form>
+</td>
+
+
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="text-center mt-3">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">⬅ Volver al Panel</a>
+    <br><br>
+  </div>
+</div>
+{% endblock %}

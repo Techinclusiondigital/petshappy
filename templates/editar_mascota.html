@@ -6,10 +6,10 @@
         <label>Nombre:</label><br>
         <input type="text" name="nombre" value="{{ mascota.nombre }}"><br><br>
 
-        <label for="tamano">Tamaño del perro:</label>
+        <label for="tamano">Tamaño del perro:</label><br>
         <select name="tamano" id="tamano" required>
             <option value="">Seleccionar...</option>
-            <option value="pequeno" {% if mascota.tamano == 'pequeno' %}selected{% endif %}>Pequeño</option>
+            <option value="pequeño" {% if mascota.tamano == 'pequeño' %}selected{% endif %}>Pequeño</option>
             <option value="mediano" {% if mascota.tamano == 'mediano' %}selected{% endif %}>Mediano</option>
             <option value="grande" {% if mascota.tamano == 'grande' %}selected{% endif %}>Grande</option>
         </select>

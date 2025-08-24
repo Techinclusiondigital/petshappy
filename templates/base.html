@@ -124,6 +124,52 @@ header {
             display: inline;
             margin-left: 10px;
         }
+        .info-plan {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.btn-cambiar-plan {
+  margin-top: 5px;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+margin-bottom: 1.5rem;
+}
+
+.btn-cambiar-plan:hover {
+  background-color: #c9302c;
+}
+
+.btn-tarifa {
+  font-size: 14px;              /* 🔹 Letra más pequeña */
+  padding: 6px 12px;            /* 🔹 Botón más compacto */
+  background-color: #6d7072;    /* 🔹 gris */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;        /* ❌ Sin subrayado por defecto */
+  transition: background-color 0.3s ease;
+}
+
+.btn-tarifa:hover {
+  background-color: #3d3d3d;    /* 🔹 gris oscuro */
+  color: white;
+  text-decoration: none;        /* ❌ Sigue sin subrayarse */
+}
+
+
+
+
+
+
+  
+
+
     </style>
    <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -161,6 +207,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <a href="/pedidos" class="icono-lateral izquierda">
           <img src="{{ url_for('static', filename='video/PEDIDOS.gif') }}" alt="Pedidos">
         </a>
+        <div class="info-plan">
+        <p>Tu plan actual: <strong>{{ usuario_real.plan.nombre if usuario_real.plan else 'Sin plan' }}</strong></p>
+{% if current_user.usuario_principal_id is none %}
+  <a href="/elegir_plan"  class="btn-tarifa">Cambiar de plan</a>
+  {% endif %}
+        </div>
          <!-- 🐶 Caniche animado centrado -->
      <a href="/cortes" class="icono-lateral derecha">
         
@@ -188,7 +240,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li><strong><a href="/logout">Cerrar sesión</a></strong></li>
     </ul>
 </nav>
- <button onclick="mostrarContacto()" class="btn-consultas">Consultas e Incidencias</button>
+
 {% endif %}
 {% endif %}
 </div>
@@ -210,11 +262,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 {% block scripts %}
 <!-- Aquí irán scripts adicionales desde las páginas hijas -->
 {% endblock %}
-<script>
-  function mostrarContacto() {
-    alert("📧 Email: techinclusiondigital@gmail.com\n📞 Teléfono: +34 641 75 2417");
-  }
-</script>
 
 </body>
 </html>

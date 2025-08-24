@@ -26,6 +26,7 @@ from flask import url_for
 from sqlalchemy import text
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash
+from flask import g
 
 
 
@@ -35,34 +36,31 @@ from flask import redirect, url_for, flash
 from datetime import datetime, timezone, timedelta
 from flask_login import current_user
 
+from flask import request
+
 def requiere_suscripcion(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         usuario = current_user
-
         if not usuario.is_authenticated:
             return redirect(url_for('login'))
 
-        fecha_alta = usuario.fecha_alta
+        usuario_real = usuario.usuario_principal or usuario
+
+        fecha_alta = usuario_real.fecha_alta
         if fecha_alta.tzinfo is None:
             fecha_alta = fecha_alta.replace(tzinfo=timezone.utc)
 
         fin_prueba = fecha_alta + timedelta(days=30)
         ahora = datetime.now(timezone.utc)
 
-        if ahora > fin_prueba:
-            # ✅ Si no tiene plan elegido
-            if not usuario.plan_id:
-                flash("⏰ Tu periodo de prueba ha terminado. Elige un plan para continuar.")
+        if ahora > fin_prueba and not usuario_real.subscripcion_id:
+            if request.endpoint not in ['elegir_plan', 'pago']:
                 return redirect(url_for("elegir_plan"))
-
-            # ✅ Si tiene plan elegido pero no ha completado pago
-            if not usuario.subscripcion_id:
-                flash("💳 Debes completar el pago para continuar.")
-                return redirect(url_for("pago"))
 
         return f(*args, **kwargs)
     return decorated_function
+
 
 
 
@@ -112,19 +110,40 @@ class Usuario(db.Model, UserMixin):
     cortes_ocultos = db.relationship("CorteOculto", backref="usuario", lazy=True)
     cortes_personales = db.relationship("CorteRaza", backref="usuario", lazy=True)
     crear_usuario = db.Column(db.String(100))
+    paypal_subscription_id = db.Column(db.String(150))  # NUEVO CAMPO
     plan_id = db.Column(db.Integer, db.ForeignKey("plan.id"))
+    plan = db.relationship("Plan", back_populates="usuarios")
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+
+    @property
+    def usuario_real(self):
+       return self if self.usuario_principal_id is None else Usuario.query.get(self.usuario_principal_id)
+
+    # Identifica si este usuario es secundario de otro
+    usuario_principal_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
+    usuarios_secundarios = db.relationship(
+        "Usuario",
+        backref=db.backref("usuario_principal", remote_side=[id]),
+        cascade="all, delete-orphan"
+    )
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    from werkzeug.security import generate_password_hash  # Asegúrate de tener esta importación
+
+    def set_password(self, password):
+      self.password_hash = generate_password_hash(password)
+
 
 
     def en_periodo_prueba(self):
-        ahora = datetime.now(timezone.utc)
+    # Si ya tiene un plan, no está en periodo de prueba
+     if self.plan_id:
+        return False
 
+     if self.fecha_alta:
+        ahora = datetime.now(timezone.utc)
         if self.fecha_alta.tzinfo is None:
             fecha_alta = self.fecha_alta.replace(tzinfo=timezone.utc)
         else:
@@ -132,7 +151,8 @@ class Usuario(db.Model, UserMixin):
 
         return ahora <= fecha_alta + timedelta(days=30)
 
-     #return False  # Fuerza a que siempre termine el periodo de prueba
+     return False
+
 
 
 import smtplib
@@ -204,9 +224,10 @@ class Plan(db.Model):
     max_fichas = db.Column(db.Integer)
     max_citas = db.Column(db.Integer)
     funcionalidades = db.Column(db.Text)
-
-    usuarios = db.relationship("Usuario", backref="plan")
-
+    paypal_plan_id = db.Column(db.String(100))  # ⬅️ Aquí agregas el campo
+    usuarios = db.relationship("Usuario", back_populates="plan")
+    orden = db.Column(db.Integer)
+    max_usuarios = db.Column(db.Integer)
 class CorteRaza(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre_raza = db.Column(db.String(100), nullable=False)
@@ -268,7 +289,7 @@ def registrar():
 
         fecha = request.form.get("edad")
         fecha_nacimiento = datetime.strptime(fecha, "%Y-%m-%d").date() if fecha else None
-
+        usuario_real = current_user.usuario_real
         nueva_mascota = Mascota(
             nombre=request.form["nombre"],
             tamano=request.form["tamano"],
@@ -282,7 +303,7 @@ def registrar():
             foto_despues=filename_despues,
             
 
-            user_id=current_user.id
+            user_id=usuario_real.id 
         )
 
         db.session.add(nueva_mascota)
@@ -372,7 +393,7 @@ def recuperar():
             <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
             <a href="{enlace}">Restablecer contraseña</a>
             """
-            enviar_email(user.email, "Recuperación de contraseña - Petshappy", cuerpo)
+            enviar_email(user.email, "Recuperación de contraseña - Zupelu", cuerpo)
             flash("📧 Se ha enviado un enlace de recuperación a tu correo.")
         else:
             flash("❌ No se encontró un usuario con ese correo.")
@@ -426,13 +447,16 @@ def politica():
 @login_required
 @requiere_suscripcion
 def ver_mascotas():
+   
     q = request.args.get("q")
     if q:
         mascotas = Mascota.query.filter(
             (Mascota.nombre.ilike(f"%{q}%")) | (Mascota.telefono.ilike(f"%{q}%"))
         ).all()
     else:
-          mascotas = Mascota.query.filter_by(user_id=current_user.id).all()
+         
+          mascotas = Mascota.query.filter_by(user_id=current_user.usuario_real.id).all()
+
     return render_template("mascotas.html", mascotas=mascotas)
 
 @app.route("/buscar-mascota", methods=["GET", "POST"])
@@ -455,16 +479,17 @@ from flask import session
 @app.route("/cita", methods=["GET", "POST"])
 @login_required
 def agendar_cita():
+    usuario_real = current_user.usuario_principal or current_user
+
     if request.method == "POST":
         nombre_input = request.form["nombre_mascota"].strip().lower()
 
         mascota = Mascota.query.filter(
             db.func.lower(Mascota.nombre) == nombre_input,
-            Mascota.user_id == current_user.id
+            Mascota.user_id == usuario_real.id
         ).first()
 
         if not mascota:
-            # ✅ Guardar los datos de la cita temporalmente en sesión
             session["datos_cita_pendiente"] = {
                 "fecha": request.form.get("fecha"),
                 "hora": request.form.get("hora"),
@@ -477,11 +502,10 @@ def agendar_cita():
                 "telefono": request.form.get("telefono"),
                 "raza": request.form.get("raza"),
                 "duenio": request.form.get("duenio"),
-
             }
             return redirect(url_for("registrar", nombre=request.form.get("nombre_mascota")))
 
-        # Mascota existe: crear cita normalmente
+        # Mascota existe: crear cita
         fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
         hora = datetime.strptime(request.form["hora"], "%H:%M").time()
         tamano = request.form["tamano"]
@@ -506,7 +530,7 @@ def agendar_cita():
             tipo_servicio=tipo_servicio,
             metodo_pago=metodo_pago,
             precio=precio,
-            user_id=current_user.id,
+            user_id=usuario_real.id,
             tamano=tamano
         )
         db.session.add(nueva_cita)
@@ -514,7 +538,7 @@ def agendar_cita():
 
         return redirect("/dashboard")
 
-    # GET: mostrar el formulario
+    # GET
     fecha = request.args.get("fecha", "")
     hora = request.args.get("hora", "")
     nombre = request.args.get("nombre", "")
@@ -533,7 +557,6 @@ def agendar_cita():
         fecha=fecha,
         hora=hora
     )
-
 
 
 
@@ -585,6 +608,32 @@ def eliminar_pedido(id):
     return redirect("/pedidos")
 
 
+@app.route("/suscripcion_exitosa")
+@login_required
+def suscripcion_exitosa():
+    subscription_id = request.args.get("subscription_id")
+    plan_id = request.args.get("plan_id")
+
+    if not subscription_id or not plan_id:
+        flash("❌ Error en la suscripción. Faltan datos.")
+        return redirect("/elegir_plan")
+
+    try:
+        # Actualiza usuario con el plan y la ID de PayPal
+        current_user.plan_id = plan_id
+        current_user.paypal_subscription_id = subscription_id
+        db.session.commit()
+
+        flash("✅ ¡Suscripción completada con éxito!")
+        return redirect("/dashboard")
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al guardar suscripción: {e}")
+        flash("❌ Ocurrió un error al guardar la suscripción.")
+        return redirect("/elegir_plan")
+
+
 @app.route("/planes", methods=["GET", "POST"])
 @login_required
 def ver_planes():
@@ -592,11 +641,101 @@ def ver_planes():
     return render_template("planes.html", planes=planes)
 
 
-@app.route("/elegir_plan")
+@app.route("/elegir_plan", methods=["GET", "POST"])
 @login_required
 def elegir_plan():
-    planes = Plan.query.all()
+    if request.method == "POST":
+        plan_id = request.form.get("plan_id")
+        plan = Plan.query.get(plan_id)
+
+        if plan:
+            current_user.plan_id = plan.id
+            db.session.commit()
+            return redirect(f"https://www.paypal.com/pay?amount={plan.precio}")
+
+        flash("⚠️ El plan seleccionado no es válido.")
+        return redirect("/elegir_plan")
+
+    # Ordenar los planes por el campo personalizado `orden`
+    planes = Plan.query.order_by(Plan.orden).all()
     return render_template("elegir_plan.html", planes=planes)
+
+
+@app.route("/dashboard/agregar_usuario", methods=["POST"])
+@login_required
+def agregar_usuario():
+    plan = current_user.plan
+    if not plan:
+        flash("No tienes un plan activo.", "danger")
+        return redirect("/dashboard")
+
+    max_users = plan.max_usuarios
+    existentes = len(current_user.usuarios_secundarios) + 1  # incluye al usuario principal
+
+    if max_users is not None and existentes >= max_users:
+        flash("❌ Límite de usuarios alcanzado.", "danger")
+        return redirect("/dashboard")
+
+    nombre = request.form["nombre_usuario"]
+    email = request.form["email"]
+    password = request.form["password"]
+
+    if Usuario.query.filter((Usuario.nombre_usuario == nombre) | (Usuario.email == email)).first():
+        flash("❌ Ese nombre o email ya está registrado.", "danger")
+        return redirect("/dashboard")
+
+    nuevo_usuario = Usuario(
+        nombre_usuario=nombre,
+        email=email,
+        usuario_principal_id=current_user.id,
+    )
+    nuevo_usuario.set_password(password)
+
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+
+    flash("✅ Usuario añadido correctamente.", "success")
+    return redirect("/dashboard")
+
+# routes.py
+
+@app.route("/crear_usuario_secundario", methods=["GET", "POST"])
+@login_required
+def crear_usuario_secundario():
+    if not current_user.plan or current_user.plan.nombre not in ["Plan Avanzado", "Plan Premium"]:
+        flash("❌ Tu plan no permite añadir usuarios secundarios.")
+        return redirect("/dashboard")
+
+    limite = 1 if current_user.plan.nombre == "Plan Avanzado" else None  # None = ilimitado
+
+    if limite is not None and len(current_user.secundarios) >= limite:
+        flash("⚠️ Has alcanzado el número máximo de usuarios secundarios.")
+        return redirect("/dashboard")
+
+    if request.method == "POST":
+        nombre_usuario = request.form["nombre_usuario"]
+        email = request.form["email"]
+        password = request.form["password"]
+
+        if Usuario.query.filter_by(email=email).first():
+            flash("❌ El email ya está registrado.")
+            return redirect("/crear_usuario_secundario")
+
+        nuevo_usuario = Usuario(
+            nombre_usuario=nombre_usuario,
+            email=email,
+            es_secundario=True,
+            usuario_padre_id=current_user.id,
+            plan_id=current_user.plan_id,
+            fecha_alta=datetime.now(timezone.utc)
+        )
+        nuevo_usuario.set_password(password)
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        flash("✅ Usuario secundario creado.")
+        return redirect("/dashboard")
+
+    return render_template("crear_usuario_secundario.html")
 
 
 
@@ -621,6 +760,13 @@ def crear_ficha():
 def bienvenida():
     return render_template("bienvenida.html")
 
+@app.context_processor
+def inject_usuario_real():
+    if current_user.is_authenticated:
+        return {
+            'usuario_real': current_user.usuario_principal or current_user
+        }
+    return {}
 
 
 @app.route("/cortes")
@@ -628,7 +774,7 @@ def bienvenida():
 def galeria_cortes():
     raza_seleccionada = request.args.get("raza")
     ocultos_ids = [o.corte_id for o in current_user.cortes_ocultos]
-
+    
     # Query base: cortes visibles para el usuario
     cortes_query = CorteRaza.query.filter(
         ((CorteRaza.es_publico == True) & (~CorteRaza.id.in_(ocultos_ids))) |
@@ -1060,34 +1206,48 @@ def api_mascota():
             "telefono": mascota.telefono
         }
     return jsonify({})
-@app.route("/api/mascotas_sugerencia")
+
+@app.route("/sugerencias")
 @login_required
-def mascotas_sugerencia():
-    nombre = request.args.get("nombre", "").strip().lower()
+def sugerencias():
+    query = request.args.get("q", "").lower()
+
+    if not query:
+        return jsonify([])
+
+    usuario_real = current_user.usuario_principal or current_user
+    ids_relacionados = [usuario_real.id] + [u.id for u in usuario_real.usuarios_secundarios]
+
     mascotas = Mascota.query.filter(
-        db.func.lower(Mascota.nombre).ilike(f"{nombre}%"),
-        Mascota.user_id == current_user.id
+        Mascota.user_id.in_(ids_relacionados),
+        db.or_(
+            db.func.lower(Mascota.nombre).like(f"%{query}%"),
+            db.func.lower(Mascota.telefono).like(f"%{query}%")
+        )
     ).all()
 
-    return jsonify([
-        {
+    resultado = []
+    for m in mascotas:
+        resultado.append({
             "id": m.id,
             "nombre": m.nombre,
             "telefono": m.telefono,
             "raza": m.raza,
             "tamano": m.tamano
-        }
-        for m in mascotas
-    ])
+        })
+
+    return jsonify(resultado)
+
 
 
 @app.route("/ficha/<int:mascota_id>", methods=["GET", "POST"])
 @login_required
 @requiere_suscripcion
 def ficha_mascota(mascota_id):
+    usuario_real = current_user.usuario_principal or current_user
     mascota = Mascota.query.get_or_404(mascota_id)
-
-    if mascota.user_id != current_user.id:
+    ids_permitidos = [usuario_real.id] + [u.id for u in usuario_real.usuarios_secundarios]
+    if mascota.user_id not in ids_permitidos:
         return "⛔ Acceso no autorizado", 403
 
     if request.method == "POST":
@@ -1207,7 +1367,7 @@ def registro():
 
             # ✅ Enviar correo de bienvenida al usuario
             user_msg = f"""
-            <h2>🎉 Bienvenido a HappyPets</h2>
+            <h2>🎉 Bienvenido a Zupelu</h2>
             <p>Hola <strong>{nombre}</strong>, gracias por registrarte.</p>
             <p>Tu empresa <strong>{nombre_empresa}</strong> ya puede comenzar a usar el sistema de gestión de peluquería canina.</p>
             <p>Recuerda que tienes 1 mes de prueba gratuito.</p>
@@ -1254,16 +1414,16 @@ def login():
             flash("❌ Usuario o contraseña incorrectos")
             return redirect("/login")
 
-        # ✅ Excluir al admin del chequeo de periodo de prueba
-        if user.email != "techinclusiondigital@gmail.com" and not user.en_periodo_prueba():
-            flash("⚠️ Tu periodo de prueba ha caducado. Por favor, activa tu cuenta.")
-            return redirect("/pago")
+        login_user(user)  # ✅ Inicia sesión primero
 
-        login_user(user)
-
-        # ✅ Redirigir según tipo de usuario
+        # ✅ Redirige según tipo de usuario y periodo de prueba
         if user.email == "techinclusiondigital@gmail.com":
             return redirect("/admin/usuarios")
+
+        elif not user.en_periodo_prueba() and not user.subscripcion_id:
+            flash("⚠️ Tu periodo de prueba ha caducado. Por favor, activa tu cuenta.")
+            return redirect("/elegir_plan")
+
         else:
             return redirect("/dashboard")
 
@@ -1437,82 +1597,94 @@ def generar_bloques(dia, hora_inicio, hora_fin, citas_por_fecha, paso_min=30):
 
 
 
-from datetime import datetime, timedelta, timezone
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 @app.route("/dashboard")
 @login_required
 @requiere_suscripcion
 def dashboard():
-    # Verificar expiración del periodo de prueba (30 días)
-    fecha_alta = current_user.fecha_alta or datetime.utcnow()
+    usuario_real = current_user.usuario_principal or current_user
+
+    # Verificar expiración del periodo de prueba
+    fecha_alta = usuario_real.fecha_alta or datetime.utcnow()
     fecha_fin_prueba = fecha_alta + timedelta(days=30)
 
-    if datetime.utcnow() > fecha_fin_prueba and not current_user.plan_seleccionado:
+    if datetime.utcnow() > fecha_fin_prueba and not usuario_real.subscripcion_id and not usuario_real.plan:
         flash("Tu periodo de prueba ha terminado. Elige un plan para continuar.", "warning")
-        return redirect(url_for("elegir_plan"))  # Asegúrate de que esta ruta exista
+        return redirect(url_for("elegir_plan"))
 
-    # -------------------- lógica existente --------------------
-    semana = int(request.args.get("semana", 0))
+    # -------------------- Agenda por día --------------------
+
+    # Obtener la fecha desde el parámetro GET o usar la fecha de hoy
     fecha_param = request.args.get("fecha")
-
     if fecha_param:
         try:
             fecha_base = datetime.strptime(fecha_param, "%Y-%m-%d").date()
         except ValueError:
             fecha_base = datetime.today().date()
     else:
-        fecha_base = datetime.today().date()
+        hoy = datetime.today().date()
+        # Si hoy es domingo (weekday == 6), mostrar lunes
+        fecha_base = hoy + timedelta(days=1) if hoy.weekday() == 6 else hoy
 
-    hoy = fecha_base + timedelta(days=7 * semana)
-    dias_mostrar = 7
 
     # Excluir domingos
-    dias_agenda = [
-        hoy + timedelta(days=i)
-        for i in range(dias_mostrar)
-        if (hoy + timedelta(days=i)).weekday() != 6
-    ]
+    if fecha_base.weekday() == 6:
+        bloques_dia = []  # Domingo: sin agenda
+    else:
+        citas_por_fecha = defaultdict(list)
 
-    # Obtener citas
-    citas = Cita.query.filter_by(user_id=current_user.id).order_by(Cita.fecha, Cita.hora).all()
-    citas_por_fecha = defaultdict(list)
-    for cita in citas:
-        citas_por_fecha[cita.fecha].append(cita)
+        # Obtener citas del usuario principal y sus usuarios secundarios
+        ids_relacionados = [usuario_real.id] + [u.id for u in usuario_real.usuarios_secundarios]
+        citas = Cita.query.filter(
+            Cita.user_id.in_(ids_relacionados),
+            Cita.fecha == fecha_base
+        ).order_by(Cita.hora).all()
 
-    # Generar agenda
-    agenda_completa = []
-    for dia in dias_agenda:
-        if dia.weekday() == 5:  # Sábado
+        for cita in citas:
+            citas_por_fecha[cita.fecha].append(cita)
+
+        # Generar bloques según el día
+        if fecha_base.weekday() == 5:  # Sábado
             bloques_dia = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
+                fecha_base,
+                datetime.strptime("09:00", "%H:%M").time(),
                 datetime.strptime("12:00", "%H:%M").time(),
                 citas_por_fecha
             )
-        else:
+        else:  # Lunes a viernes
             bloques_manana = generar_bloques(
-                dia,
-                datetime.strptime("10:00", "%H:%M").time(),
+                fecha_base,
+                datetime.strptime("09:00", "%H:%M").time(),
                 datetime.strptime("14:00", "%H:%M").time(),
                 citas_por_fecha
             )
             bloques_tarde = generar_bloques(
-                dia,
+                fecha_base,
                 datetime.strptime("17:00", "%H:%M").time(),
                 datetime.strptime("20:30", "%H:%M").time(),
                 citas_por_fecha
             )
             bloques_dia = bloques_manana + bloques_tarde
 
-        agenda_completa.append((dia, dia_semana_espanol(dia), bloques_dia))
+    # Agenda para un solo día
+    agenda_completa = [(fecha_base, dia_semana_espanol(fecha_base), bloques_dia)]
+
+    # Calcular fechas anterior y siguiente
+    fecha_anterior = fecha_base - timedelta(days=1)
+    fecha_siguiente = fecha_base + timedelta(days=1)
 
     return render_template(
         "dashboard.html",
         agenda=agenda_completa,
-        fecha_fin_prueba=fecha_fin_prueba
+        usuario_real=usuario_real,
+        fecha_fin_prueba=fecha_fin_prueba,
+        fecha_anterior=fecha_anterior.strftime("%Y-%m-%d"),
+        fecha_siguiente=fecha_siguiente.strftime("%Y-%m-%d")
     )
-
-
 
 @app.route("/actualizar_pago/<int:cita_id>", methods=["POST"])
 @login_required
@@ -1534,17 +1706,41 @@ def actualizar_pago(cita_id):
     db.session.commit()
     return redirect("/agenda")
 
-@app.route("/suscripcion_exitosa")
+@app.route("/editar_usuario/<int:usuario_id>", methods=["GET", "POST"])
 @login_required
-def suscripcion_exitosa():
-    sub_id = request.args.get("sub_id")
-    current_user.subscripcion_id = sub_id
-    current_user.fecha_suscripcion = datetime.utcnow().date()
+def editar_usuario_secundario(usuario_id):
+    usuario = Usuario.query.get_or_404(usuario_id)
+
+    if request.method == "POST":
+        usuario.nombre_usuario = request.form["nombre_usuario"]
+        usuario.email = request.form["email"]
+        # Aquí puedes agregar más campos si los editas
+
+        db.session.commit()
+        flash("Usuario actualizado correctamente", "success")
+        return redirect(url_for("ver_usuarios"))
+
+    return render_template("editar_usuario.html", usuario=usuario)
+
+@app.route("/eliminar_usuario/<int:usuario_id>", methods=["POST"])
+@login_required
+def eliminar_usuario_secundario(usuario_id):
+    usuario = Usuario.query.get_or_404(usuario_id)
+
+    if usuario.usuario_principal_id != current_user.id:
+        flash("No tienes permiso para eliminar este usuario.", "danger")
+        return redirect(url_for("dashboard"))
+
+    db.session.delete(usuario)
     db.session.commit()
-    flash("✅ Suscripción activada con éxito.")
-    return redirect("/dashboard")
+    flash("Usuario eliminado correctamente.", "success")
+    return redirect(url_for("ver_usuarios"))
 
-
+@app.route("/usuarios")
+@login_required
+def ver_usuarios():
+    usuario_real = current_user.usuario_principal or current_user
+    return render_template("ver_usuarios.html", usuario_real=usuario_real)
 
 # INICIO APP
 if __name__ == "__main__":

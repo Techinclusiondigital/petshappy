@@ -234,6 +234,37 @@ a:hover {
     margin: 0;
 }
 
+.flecha-gris {
+  color: grey;
+}
+
+
+
+  .sugerencia-item {
+    padding: 5px;
+    cursor: pointer;
+    background: #f1f1f1;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .sugerencia-item:hover {
+    background: #ddd;
+  }
+
+  #sugerencias {
+    position: absolute;
+    background: white;
+    z-index: 10;
+    width: 100%;
+    border: 1px solid #ccc;
+  }
+
+  .sugerencias-wrapper {
+    position: relative;
+  }
+
+
+
 .sub-menu li a {
     text-decoration: none;
     font-weight: bold;
@@ -344,6 +375,53 @@ a:hover {
   line-height: 1.6;
 }
 
+
+.btn-igual {
+  background-color: #dc3545;  /* rojo Bootstrap */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-igual:hover {
+  background-color: #bb2d3b;
+  
+}
+
+.btn-igual {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-igual:hover {
+  background-color: #bb2d3b;
+
+}
+
+
+
+.btn btn-secuntario {
+background-color: red;
+
+}
 .politica-container h1 {
   font-size: 2rem;
   color: #007a4d;
@@ -492,12 +570,19 @@ button:hover {
     cursor: pointer;
     width: 100%;
     max-width: 180px;
+     margin-top: 1rem;
 }
 
 .btn-agenda:hover {
     background-color: #c9302c;
 }
 
+@media (max-width: 768px) {
+  .btn-agenda {
+  
+    margin-top: 2rem;
+  }
+}
 .contador {
  color: #949ca4;   
 }
