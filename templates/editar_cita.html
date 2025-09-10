@@ -115,6 +115,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <label>Notas:</label>
         <textarea name="notas" rows="4">{{ cita.notas }}</textarea>
 
+         <label for="tipo_corte">Tipo de corte</label>
+  <input type="text" id="tipo_corte" name="tipo_corte" value="{{ cita.tipo_corte or '' }}">
+
         <button type="submit">💾 Guardar cambios</button>
     </form>
 

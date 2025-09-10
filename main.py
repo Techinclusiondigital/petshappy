@@ -202,6 +202,7 @@ class Cita(db.Model):
     hora = db.Column(db.Time, nullable=False)
     duracion = db.Column(db.Integer, default=60)  # en minutos
     tipo_servicio = db.Column(db.String(100))  # baño, corte, etc.
+    tipo_corte = db.Column(db.String(100))
     precio = db.Column(db.Float)
     metodo_pago = db.Column(db.String(20))
     notas = db.Column(db.Text)
@@ -1125,12 +1126,11 @@ def editar_cita(cita_id):
     if request.method == "POST":
         cita.precio = float(request.form["precio"])
         cita.notas = request.form.get("notas")
+        cita.tipo_corte = request.form.get("tipo_corte")  # 👈 guardar corte
         db.session.commit()
         return redirect(f"/ficha/{cita.mascota.id}")
 
     return render_template("editar_cita.html", cita=cita)
-
-
 
 
 @app.route("/ficha_pdf/<int:mascota_id>")

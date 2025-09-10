@@ -51,6 +51,7 @@
     <div class="campo-cita"><span>Hora:</span> {{ cita.hora.strftime('%H:%M') }}</div>
     <div class="campo-cita"><span>Servicio:</span> {{ cita.tipo_servicio or 'Sin especificar' }}</div>
     <div class="campo-cita"><span>Notas:</span> {{ cita.notas or '—' }}</div>
+     <div class="campo-cita"><span>Tipo de corte</span> {{ cita.tipo_corte or '—' }}</div>
     <div class="campo-cita"><span>Precio (€):</span> {{ "%.2f"|format(cita.precio or 0) }}</div>
     <a href="/editar_cita/{{ cita.id }}" class="editar-link">✏️ Editar cita</a>
   </div>

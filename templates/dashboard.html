@@ -89,11 +89,7 @@
     }
   }
 </style>
-
-
-
-
-
+{# ===== AGENDA ===== #}
 {% for fecha, nombre_dia, bloques in agenda %}
   <ul class="list-group mb-3">
     {% for bloque in bloques %}
@@ -101,51 +97,66 @@
         {% if not bloque.mascota %}
           <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="bloque-libre">{{ bloque.texto }}</a>
         {% else %}
-         <strong>{{ bloque.hora }}</strong>
-<a href="/mascota/{{ bloque.mascota.id }}" class="fw-bold nombre-mascota">
-  {{ bloque.mascota.nombre }}
-</a>
-- {{ bloque.tipo_servicio or "Sin servicio" }}
-<span class="text-muted small ms-2">
-  ({{ bloque.mascota.raza }} - {{ bloque.mascota.tamano }})
-</span>
+          <div class="cita-card">
+          <div class="cita-row cita-head">
+  <div class="cita-hora">{{ bloque.hora }}</div>
+  <a href="/mascota/{{ bloque.mascota.id }}" class="cita-nombre">
+    {{ bloque.mascota.nombre }}
+  </a>
+</div>
 
+            <div class="cita-row cita-meta">
+              <span class="cita-servicio">{{ bloque.tipo_servicio or "Sin servicio" }}</span>
+              <span class="cita-raza">({{ bloque.mascota.raza }} - {{ bloque.tamano }})</span>
+              {% if bloque.tipo_corte is defined and bloque.tipo_corte %}
+                <span class="cita-corte">• Corte: {{ bloque.tipo_corte }}</span>
+              {% endif %}
+            </div>
 
-          {% if bloque.cita_id %}
-            <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="d-flex align-items-center gap-2 mt-2">
-              <select name="metodo_pago" class="form-select form-select-sm">
-                <option value="">Método</option>
-                <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
-                <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
-              </select>
-              <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm" style="width: 80px;">
-              <button type="submit" class="btn btn-sm btn-success">💾</button>
-            </form>
+            {% if bloque.cita_id %}
+              <div class="cita-row cita-acciones">
+                <form action="/actualizar_pago/{{ bloque.cita_id }}" method="POST" class="cita-pago-form">
+                  <select name="metodo_pago" class="form-select form-select-sm">
+                    <option value="">Método</option>
+                    <option value="efectivo" {% if bloque.metodo_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+                    <option value="tarjeta" {% if bloque.metodo_pago == 'tarjeta' %}selected{% endif %}>💳 Tarjeta</option>
+                  </select>
+                  <input type="number" step="0.01" name="precio" placeholder="€" value="{{ bloque.precio or '' }}" class="form-control form-control-sm">
+                  <button type="submit" class="btn btn-sm btn-success">💾</button>
+                </form>
 
-            <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline mt-1">
-              <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
-            </form>
+                <form method="POST" action="/anular_cita/{{ bloque.cita_id }}" class="d-inline">
+                  <button type="submit" class="btn btn-sm btn-danger">❌ Anular</button>
+                </form>
 
-            {% if bloque.mascota.telefono %}
-              {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
-              {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
-              <a class="btn btn-success btn-sm mt-1" target="_blank"
-                 href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
-                📲 Enviar recordatorio
-              </a>
+                {% if bloque.mascota.telefono %}
+                  {% set telefono = bloque.mascota.telefono.replace(" ", "").replace("-", "") %}
+                  {% set mensaje = "Hola! Te recordamos que tienes una cita mañana con tu mascota " ~ bloque.mascota.nombre ~ " a las " ~ bloque.hora %}
+                  <a class="btn btn-success btn-sm" target="_blank"
+                     href="https://wa.me/34{{ telefono }}?text={{ mensaje | urlencode }}">
+                    📲 Enviar recordatorio
+                  </a>
+                {% endif %}
+                 </div>
+              <div class="cita-row cita-extra">
+  <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary">
+    ➕ Agendar otra cita a esta hora
+  </a>
+</div>
+ 
             {% endif %}
-
-            <a href="/cita?fecha={{ fecha }}&hora={{ bloque.hora }}" class="btn btn-sm btn-primary mt-2">➕ Agendar otra cita a esta hora</a>
-          {% endif %}
+          </div>
         {% endif %}
       </li>
     {% endfor %}
   </ul>
-   <button onclick="mostrarContacto()" class="btn-consultas">Consultas e Incidencias</button>
-  {% endfor %}
+{% endfor %}
+
+<button onclick="mostrarContacto()" class="btn-consultas">Consultas e Incidencias</button>
+
+{# >>> CIERRE DEL BLOQUE CONTENT <<< #}
 {% endblock %}
 
-</div>
 
 {% block scripts %}
 {% if current_user.usuario_principal_id is none and not usuario_real.subscripcion_id and not usuario_real.en_periodo_prueba() %}
